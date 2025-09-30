@@ -1,38 +1,53 @@
-// src/frontend/pages/Login/Login.jsx
-import React, { useState } from "react";
-import { Container, Card, Form, Button, ToggleButtonGroup, ToggleButton, Alert } from "react-bootstrap";
-import { useAuth } from "../../../context/AuthContext";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { login } from '../../services/auth.js';
+import AuthLayout from '../../components/AuthLayout.jsx';
 
 export default function Login() {
-  const { login } = useAuth();
-  const [role, setRole] = useState("estudiante");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const navigate = useNavigate();
 
-  const handle = async (e) => {
+  async function onSubmit(e){
     e.preventDefault();
-    const res = login(role, email, password);
-    if (!res.ok) setErr(res.message);
-  };
+    setErr(''); setLoading(true);
+    try{
+      await login({ email, password });
+      navigate('/perfil');
+    }catch(e){ setErr(e.message); }
+    finally{ setLoading(false); }
+  }
 
   return (
-    <Container className="my-5 d-flex justify-content-center">
-      <Card style={{ width: 520 }} className="p-4">
-        <h3 className="mb-3">Iniciar sesión</h3>
-        {err && <Alert variant="danger">{err}</Alert>}
-        <ToggleButtonGroup type="radio" name="role" value={role} onChange={val=>setRole(val)} className="mb-3">
-          <ToggleButton id="t1" value="estudiante" variant={role==="estudiante"?"primary":"outline-primary"}>Estudiante</ToggleButton>
-          <ToggleButton id="t2" value="docente" variant={role==="docente"?"success":"outline-success"}>Docente</ToggleButton>
-        </ToggleButtonGroup>
+    <AuthLayout title="Inicia sesión" subtitle="Accede a tu cuenta para continuar.">
+      <form className="auth-form" onSubmit={onSubmit}>
+        <label htmlFor="email">Email</label>
+        <input id="email" className="auth-input" type="email"
+               value={email} onChange={e=>setEmail(e.target.value)} required />
 
-        <Form onSubmit={handle}>
-          <Form.Group className="mb-2"><Form.Label>Email</Form.Label><Form.Control type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></Form.Group>
-          <Form.Group className="mb-2"><Form.Label>Contraseña</Form.Label><Form.Control type="password" value={password} onChange={e=>setPassword(e.target.value)} required /></Form.Group>
-          <Button type="submit" className="w-100">Ingresar</Button>
-        </Form>
-        <div className="mt-3 text-center"><a href="/register">¿No tienes cuenta? Regístrate</a></div>
-      </Card>
-    </Container>
+        <label htmlFor="password">Contraseña</label>
+        <div className="auth-row">
+          <input id="password" className="auth-input" style={{flex:1}}
+                 type={show?'text':'password'} value={password}
+                 onChange={e=>setPassword(e.target.value)} required />
+          <button type="button" className="btn-primary" onClick={()=>setShow(s=>!s)}>
+            {show ? 'Ocultar' : 'Mostrar'}
+          </button>
+        </div>
+
+        <div className="auth-actions">
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Entrando…' : 'Entrar'}
+          </button>
+          <Link className="link" to="/register">Crear cuenta</Link>
+        </div>
+
+        {err && <div className="auth-error">{err}</div>}
+        <p className="auth-note">¿Olvidaste la contraseña? </p>
+      </form>
+    </AuthLayout>
   );
 }

@@ -1,19 +1,31 @@
-// src/frontend/components/ProtectedRoute.jsx
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { me } from '../services/auth.js';
 
-export default function ProtectedRoute({ children, role }) {
-  const { user } = useAuth();
+// Uso:
+// <ProtectedRoute role="docente"><Docente /></ProtectedRoute>
+// <ProtectedRoute><Perfil /></ProtectedRoute>
+export default function ProtectedRoute({ role, children }) {
+  const [state, setState] = useState({ loading: true, allowed: false });
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const user = await me();
+        if (!alive) return;
+        if (!user) return setState({ loading: false, allowed: false });
+        if (role && user.rol !== role) return setState({ loading: false, allowed: false });
+        setState({ loading: false, allowed: true });
+      } catch {
+        setState({ loading: false, allowed: false });
+      }
+    })();
+    return () => { alive = false; };
+  }, [role]);
 
-  if (role && user.role !== role) {
-    // si rol no coincide, manda al home
-    return <Navigate to="/" replace />;
-  }
-
+  if (state.loading) return <div style={{ padding: 24 }}>Verificando acceso…</div>;
+  if (!state.allowed) return <Navigate to="/login" replace />;
   return children;
 }
+ 

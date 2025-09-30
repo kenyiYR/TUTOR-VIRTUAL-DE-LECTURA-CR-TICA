@@ -1,41 +1,66 @@
-// src/frontend/pages/Login/Register.jsx
-import React, { useState } from "react";
-import { Container, Card, Form, Button, ToggleButtonGroup, ToggleButton, Alert } from "react-bootstrap";
-import { useAuth } from "../../../context/AuthContext";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { register } from '../../services/auth.js';
+import AuthLayout from '../../components/AuthLayout.jsx';
 
 export default function Register() {
-  const { register } = useAuth();
-  const [role, setRole] = useState("estudiante");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState(null);
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [rol, setRol] = useState('estudiante');
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const navigate = useNavigate();
 
-  const handle = (e) => {
+  async function onSubmit(e){
     e.preventDefault();
-    const res = register(name, role, email, password);
-    if (!res.ok) setErr(res.message);
-  };
+    setErr(''); setLoading(true);
+    try{
+      await register({ nombre, email, password, rol });
+      navigate('/perfil');
+    }catch(e){ setErr(e.message); }
+    finally{ setLoading(false); }
+  }
 
   return (
-    <Container className="my-5 d-flex justify-content-center">
-      <Card style={{ width: 560 }} className="p-4">
-        <h3 className="mb-3">Crear nueva cuenta</h3>
-        {err && <Alert variant="danger">{err}</Alert>}
-        <ToggleButtonGroup type="radio" name="role" value={role} onChange={val=>setRole(val)} className="mb-3">
-          <ToggleButton id="r1" value="estudiante" variant={role==="estudiante"?"primary":"outline-primary"}>Estudiante</ToggleButton>
-          <ToggleButton id="r2" value="docente" variant={role==="docente"?"success":"outline-success"}>Docente</ToggleButton>
-        </ToggleButtonGroup>
+    <AuthLayout title="Crear cuenta" subtitle="Únete para empezar con la lectura crítica.">
+      <form className="auth-form" onSubmit={onSubmit}>
+        <label htmlFor="nombre">Nombre</label>
+        <input id="nombre" className="auth-input"
+               value={nombre} onChange={e=>setNombre(e.target.value)} required />
 
-        <Form onSubmit={handle}>
-          <Form.Group className="mb-2"><Form.Label>Nombre completo</Form.Label><Form.Control value={name} onChange={e=>setName(e.target.value)} required /></Form.Group>
-          <Form.Group className="mb-2"><Form.Label>Email</Form.Label><Form.Control type="email" value={email} onChange={e=>setEmail(e.target.value)} required /></Form.Group>
-          <Form.Group className="mb-2"><Form.Label>Contraseña</Form.Label><Form.Control type="password" value={password} onChange={e=>setPassword(e.target.value)} required /></Form.Group>
-          <Button type="submit" variant="success" className="w-100">Crear cuenta</Button>
-        </Form>
+        <label htmlFor="email">Email</label>
+        <input id="email" className="auth-input" type="email"
+               value={email} onChange={e=>setEmail(e.target.value)} required />
 
-        <div className="mt-3 text-center"><a href="/login">¿Ya tienes cuenta? Inicia sesión</a></div>
-      </Card>
-    </Container>
+        <label htmlFor="rol">Rol</label>
+        <select id="rol" className="auth-input"
+                value={rol} onChange={e=>setRol(e.target.value)}>
+          <option value="estudiante">Estudiante</option>
+          <option value="docente">Docente</option>
+        </select>
+
+        <label htmlFor="password">Contraseña</label>
+        <div className="auth-row">
+          <input id="password" className="auth-input" style={{flex:1}}
+                 type={show?'text':'password'} value={password}
+                 onChange={e=>setPassword(e.target.value)} required />
+          <button type="button" className="btn-primary" onClick={()=>setShow(s=>!s)}>
+            {show ? 'Ocultar' : 'Mostrar'}
+          </button>
+        </div>
+
+        <div className="auth-actions">
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Creando…' : 'Registrarme'}
+          </button>
+          <Link className="link" to="/login">Ya tengo cuenta</Link>
+        </div>
+
+        {err && <div className="auth-error">{err}</div>}
+        <p className="auth-note"></p>
+      </form>
+    </AuthLayout>
   );
 }

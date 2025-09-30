@@ -3,9 +3,17 @@ import React from "react";
 import { Navbar as BNavbar, Nav, Container, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { clearToken } from '../services/auth.js';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout: authLogout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+  authLogout();        // sale del contexto
+  navigate('/login');  // redirige
+}
 
   return (
     <BNavbar bg="dark" variant="dark" expand="lg" className="mb-4">
