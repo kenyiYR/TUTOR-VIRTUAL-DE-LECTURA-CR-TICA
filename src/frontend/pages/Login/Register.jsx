@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../../services/auth.js';
+import { register } from '../../services/auth.js';
 import AuthLayout from '../../components/AuthLayout.jsx';
 
-export default function Login() {
+export default function Register() {
+  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
+  const [rol, setRol] = useState('estudiante');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -13,24 +15,31 @@ export default function Login() {
 
   async function onSubmit(e){
     e.preventDefault();
-    setErr('');
-    setLoading(true);
+    setErr(''); setLoading(true);
     try{
-      await login({ email, password });
-      navigate('/perfil');   // ajusta destino si quieres
-    }catch(e){
-      setErr(e.message);
-    }finally{
-      setLoading(false);
-    }
+      await register({ nombre, email, password, rol });
+      navigate('/perfil');
+    }catch(e){ setErr(e.message); }
+    finally{ setLoading(false); }
   }
 
   return (
-    <AuthLayout title="Inicia sesión" subtitle="Accede a tu cuenta para continuar.">
+    <AuthLayout title="Crear cuenta" subtitle="Únete para empezar con la lectura crítica.">
       <form className="auth-form" onSubmit={onSubmit}>
+        <label htmlFor="nombre">Nombre</label>
+        <input id="nombre" className="auth-input"
+               value={nombre} onChange={e=>setNombre(e.target.value)} required />
+
         <label htmlFor="email">Email</label>
         <input id="email" className="auth-input" type="email"
                value={email} onChange={e=>setEmail(e.target.value)} required />
+
+        <label htmlFor="rol">Rol</label>
+        <select id="rol" className="auth-input"
+                value={rol} onChange={e=>setRol(e.target.value)}>
+          <option value="estudiante">Estudiante</option>
+          <option value="docente">Docente</option>
+        </select>
 
         <label htmlFor="password">Contraseña</label>
         <div className="auth-row">
@@ -44,15 +53,14 @@ export default function Login() {
 
         <div className="auth-actions">
           <button className="btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Entrando…' : 'Entrar'}
+            {loading ? 'Creando…' : 'Registrarme'}
           </button>
-          <Link className="link" to="/register">Crear cuenta</Link>
+          <Link className="link" to="/login">Ya tengo cuenta</Link>
         </div>
 
         {err && <div className="auth-error">{err}</div>}
-        <p className="auth-note">¿Olvidaste la contraseña? Esa historia va en otro sprint.</p>
+        <p className="auth-note"></p>
       </form>
     </AuthLayout>
   );
 }
-
