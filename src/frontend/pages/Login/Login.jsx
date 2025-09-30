@@ -13,12 +13,16 @@ export default function Login() {
 
   async function onSubmit(e){
     e.preventDefault();
-    setErr(''); setLoading(true);
+    setErr('');
+    setLoading(true);
     try{
       await login({ email, password });
-      navigate('/perfil');
-    }catch(e){ setErr(e.message); }
-    finally{ setLoading(false); }
+      navigate('/perfil');   // ajusta destino si quieres
+    }catch(e){
+      setErr(e.message);
+    }finally{
+      setLoading(false);
+    }
   }
 
   return (
@@ -46,7 +50,7 @@ export default function Login() {
         </div>
 
         {err && <div className="auth-error">{err}</div>}
-        <p className="auth-note">¿Olvidaste la contraseña? </p>
+        <p className="auth-note">¿Olvidaste la contraseña? Esa historia va en otro sprint.</p>
       </form>
     </AuthLayout>
   );
