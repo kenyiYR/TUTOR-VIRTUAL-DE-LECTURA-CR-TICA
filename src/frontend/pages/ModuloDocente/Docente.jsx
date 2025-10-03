@@ -1,80 +1,141 @@
-// src/frontend/pages/ModuloDocente/Docente.jsx
-import React, { useState, useEffect } from "react";
-import { Container, Card, Table, Button, Form } from "react-bootstrap";
+import { useEffect, useState } from 'react';
+import { getMyTeacherProfile, updateMyTeacherProfile } from '../../services/teacher.js';
+import '../../../index.css'; 
+
+const ALL_DAYS = ['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
 
 export default function Docente() {
-  const [students, setStudents] = useState([]);
-  const [contentTitle, setContentTitle] = useState("");
-  const [questionText, setQuestionText] = useState("");
-  const [comparative, setComparative] = useState(null);
+  const [form, setForm] = useState({
+    especialidad:'', bio:'', cursos:[], redes:{ linkedin:'', github:'' },
+    disponibilidad:{ dias:[], horario:'' }, avatarUrl:''
+  });
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    setStudents(users.filter(u => u.role === "estudiante"));
+    (async () => {
+      try {
+        const p = await getMyTeacherProfile();
+        setForm({
+          especialidad: p.especialidad || '',
+          bio: p.bio || '',
+          cursos: p.cursos || [],
+          redes: { linkedin: p.redes?.linkedin || '', github: p.redes?.github || '' },
+          disponibilidad: { dias: p.disponibilidad?.dias || [], horario: p.disponibilidad?.horario || '' },
+          avatarUrl: p.avatarUrl || ''
+        });
+      } catch(e){ setMsg(e.message); }
+      finally{ setLoading(false); }
+    })();
   }, []);
 
-  const downloadReport = (email) => {
-    const prog = JSON.parse(localStorage.getItem(`progress_${email}`) || "[]");
-    const csv = "fecha,score\n" + (prog.map(p => `${p.date},${p.score}`).join("\n") || "");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${email}-report.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  function setField(path, value){
+    setForm(prev => {
+      const next = structuredClone(prev);
+      const parts = path.split('.');
+      let ref = next;
+      for (let i=0;i<parts.length-1;i++) ref = ref[parts[i]];
+      ref[parts.at(-1)] = value;
+      return next;
+    });
+  }
 
-  const handleUpload = (e) => {
+  function toggleDay(d){
+    const current = new Set(form.disponibilidad.dias);
+    current.has(d) ? current.delete(d) : current.add(d);
+    setField('disponibilidad.dias', Array.from(current));
+  }
+
+  async function onSubmit(e){
     e.preventDefault();
-    alert(`Contenido "${contentTitle}" cargado (simulado)`);
-    setContentTitle("");
-  };
+    setMsg(''); setSaving(true);
+    try{
+      const payload = {
+        ...form,
+        cursos: (Array.isArray(form.cursos) ? form.cursos : String(form.cursos).split(',').map(s=>s.trim()).filter(Boolean))
+      };
+      await updateMyTeacherProfile(payload);
+      setMsg('Perfil guardado ✅');
+    }catch(e){ setMsg(e.message); }
+    finally{ setSaving(false); }
+  }
 
-  const handleCreateQuestion = (e) => {
-    e.preventDefault();
-    alert(`Pregunta creada: "${questionText}" (simulado)`);
-    setQuestionText("");
-  };
-
-  const runComparative = () => {
-    setComparative([{ name: "Grupo A", avg: 78 }, { name: "Grupo B", avg: 65 }, { name: "Grupo C", avg: 85 }]);
-  };
+  if (loading) return <div className="auth-wrap"><div className="auth-card">Cargando…</div></div>;
 
   return (
-    <Container className="my-5">
-      <h2>Módulo Docente</h2>
-      <p className="text-muted">Panel de control, gestión de contenidos y análisis comparativo.</p>
+    <div className="auth-wrap">
+      <div className="auth-card" style={{maxWidth: 760}}>
+        <h1 className="auth-title">Perfil Docente</h1>
+        <p className="auth-sub">Completa tu información para los módulos de lectura crítica.</p>
 
-      <Card className="mb-3">
-        <Card.Body>
-          <h5>Panel de control — lista de estudiantes</h5>
-          <Table striped bordered hover size="sm">
-            <thead><tr><th>Email</th><th>Nombre</th><th>Progreso</th><th>Acciones</th></tr></thead>
-            <tbody>
-              {students.length === 0 && <tr><td colSpan="4">No hay estudiantes registrados</td></tr>}
-              {students.map((s,i)=>(<tr key={i}><td>{s.email}</td><td>{s.name || "-"}</td><td>{Math.floor(40+Math.random()*60)}%</td><td><Button size="sm" onClick={()=>downloadReport(s.email)}>Descargar reporte</Button></td></tr>))}
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
+        <form className="auth-form" onSubmit={onSubmit}>
+          <label>Especialidad</label>
+          <input className="auth-input" value={form.especialidad}
+                 onChange={e=>setField('especialidad', e.target.value)} />
 
-      <Card className="mb-3">
-        <Card.Body>
-          <h5>Gestión de contenido</h5>
-          <Form onSubmit={handleUpload}><Form.Group className="mb-2"><Form.Label>Título</Form.Label><Form.Control value={contentTitle} onChange={e=>setContentTitle(e.target.value)} /></Form.Group><Button type="submit">Cargar texto</Button></Form>
-          <hr />
-          <Form onSubmit={handleCreateQuestion}><Form.Group className="mb-2"><Form.Label>Pregunta manual</Form.Label><Form.Control as="textarea" rows={3} value={questionText} onChange={e=>setQuestionText(e.target.value)} /></Form.Group><Button type="submit" variant="success">Crear pregunta</Button></Form>
-        </Card.Body>
-      </Card>
+          <label>Biografía</label>
+          <textarea className="auth-input" rows={4} value={form.bio}
+                    onChange={e=>setField('bio', e.target.value)} />
 
-      <Card>
-        <Card.Body>
-          <h5>Análisis comparativo</h5>
-          <Button onClick={runComparative}>Ejecutar análisis</Button>
-          {comparative && comparative.map((g,i)=>(<div key={i}><strong>{g.name}</strong>: promedio {g.avg}%</div>))}
-        </Card.Body>
-      </Card>
-    </Container>
+          <label>Cursos (separados por coma)</label>
+          <input className="auth-input"
+                 value={Array.isArray(form.cursos)? form.cursos.join(', ') : form.cursos}
+                 onChange={e=>setField('cursos', e.target.value)} />
+
+          <div className="auth-row" style={{gap:16}}>
+            <div style={{flex:1}}>
+              <label>LinkedIn</label>
+              <input className="auth-input" value={form.redes.linkedin}
+                     onChange={e=>setField('redes.linkedin', e.target.value)} />
+            </div>
+            <div style={{flex:1}}>
+              <label>GitHub</label>
+              <input className="auth-input" value={form.redes.github}
+                     onChange={e=>setField('redes.github', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="auth-row" style={{gap:16}}>
+            <div style={{flex:1}}>
+              <label>Días disponibles</label>
+              <div style={{display:'flex', flexWrap:'wrap', gap:8}}>
+                {ALL_DAYS.map(d => (
+                  <label key={d} style={{
+                    border:'1px solid var(--border)', borderRadius:8, padding:'6px 10px',
+                    background: form.disponibilidad.dias.includes(d) ? 'rgba(96,165,250,.2)' : '#0b1220',
+                    cursor:'pointer'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={form.disponibilidad.dias.includes(d)}
+                      onChange={()=>toggleDay(d)}
+                      style={{marginRight:8}}
+                    />{d}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div style={{flex:1}}>
+              <label>Horario</label>
+              <input className="auth-input" placeholder="09:00-13:00"
+                     value={form.disponibilidad.horario}
+                     onChange={e=>setField('disponibilidad.horario', e.target.value)} />
+            </div>
+          </div>
+
+          <label>Foto (URL)</label>
+          <input className="auth-input" value={form.avatarUrl}
+                 onChange={e=>setField('avatarUrl', e.target.value)} />
+
+          <div className="auth-actions">
+            <button className="btn-primary" type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : 'Guardar cambios'}
+            </button>
+            {msg && <span style={{color: msg.includes('✅') ? 'var(--ok)' : '#fecaca'}}>{msg}</span>}
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
