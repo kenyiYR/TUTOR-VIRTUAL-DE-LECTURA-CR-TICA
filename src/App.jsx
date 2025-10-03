@@ -33,14 +33,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/docente"
-            element={
+          <Route path="/docente" element={
               <ProtectedRoute role="docente">
-                <Docente />
-              </ProtectedRoute>
-            }
-          />
+              <Docente/>
+             </ProtectedRoute>
+               } />
+          <Route path="/perfil" element={
+            <ProtectedRoute>
+              <Perfil/>
+            </ProtectedRoute>
+              } />
 
           {/* otras rutas pueden requerir login global si quieres; aquí las dejamos públicas */}
           <Route path="/ia" element={<IA />} />

@@ -1,19 +1,19 @@
-// src/frontend/components/Navbar.jsx
 import React from "react";
 import { Navbar as BNavbar, Nav, Container, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { clearToken } from '../services/auth.js';
-import { useNavigate } from 'react-router-dom';
+import { getUser, getUserRole, logoutClient } from "../services/auth.js"; 
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
-  const { user, logout: authLogout } = useAuth();
   const navigate = useNavigate();
+  const user = getUser();
+  const role = getUserRole();
 
   function handleLogout() {
-  authLogout();        // sale del contexto
-  navigate('/login');  // redirige
-}
+    logoutClient();
+    navigate('/login');
+  }
 
   return (
     <BNavbar bg="dark" variant="dark" expand="lg" className="mb-4">
@@ -40,10 +40,11 @@ export default function Navbar() {
           </Nav>
 
           <Nav>
+            <div style={{ marginLeft:'auto', display:'flex', gap:16, alignItems:'center' }}></div>
             {user ? (
               <>
-                <Nav.Link as={Link} to="/perfil">{user.name || user.email}</Nav.Link>
-                <Button variant="outline-light" size="sm" onClick={logout}>Cerrar sesión</Button>
+                <span style={{ opacity:.8 }}>Sesión: <b>{role}</b></span>
+                <button className="btn-primary" onClick={handleLogout}>Cerrar sesión</button>
               </>
             ) : (
               <>
