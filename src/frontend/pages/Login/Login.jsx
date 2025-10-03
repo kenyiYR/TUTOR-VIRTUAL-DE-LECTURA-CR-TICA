@@ -16,8 +16,11 @@ export default function Login() {
     setErr('');
     setLoading(true);
     try{
-      await login({ email, password });
-      navigate('/perfil');   // ajusta destino si quieres
+      const user = await login({ email, password });
+      // redirige por rol
+      if (user.rol === 'docente') navigate('/docente');       // directo a editar perfil
+      else if (user.rol === 'estudiante') navigate('/estudiante');
+      else navigate('/perfil');
     }catch(e){
       setErr(e.message);
     }finally{
