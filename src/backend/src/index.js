@@ -10,6 +10,9 @@ import usersRouter from './routes/users.routes.js';
 import authRouter from './routes/auth.routes.js';
 import teacherRouter from './routes/teacher.routes.js';
 
+import readingRouter from './routes/reading.routes.js';
+import assignmentRouter from './routes/assignment.routes.js';
+
 const app = express();
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -41,6 +44,8 @@ app.get('/db/health', (req, res) => {
 app.use('/api/users', usersRouter);   // CRUD mínimo
 app.use('/api/auth', authRouter);     // register, login, me
 app.use('/api/teacher', teacherRouter);
+app.use('/api/readings', readingRouter);        // docente
+app.use('/api/assignments', assignmentRouter);  // docente + estudiante
 
 // 404 explícito
 app.use((req, res) => {
