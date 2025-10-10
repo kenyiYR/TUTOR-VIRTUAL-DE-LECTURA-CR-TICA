@@ -16,7 +16,7 @@ export default function Navbar() {
   }
 
   return (
-    <BNavbar bg="dark" variant="dark" expand="lg" className="mb-4">
+    <BNavbar bg="dark" variant="dark" expand="lg" className="site-nav">
       <Container>
         <BNavbar.Brand as={Link} to="/">Tutor Virtual</BNavbar.Brand>
         <BNavbar.Toggle aria-controls="basic-navbar-nav" />

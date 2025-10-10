@@ -1,1 +1,19 @@
-.btn-primary{ cursor:pointer; }
+.auth-wrap{
+  min-height:calc(100vh - 140px);
+  display:grid; place-items:center;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(139,92,246,.18), transparent 60%),
+    radial-gradient(1000px 500px at 120% 10%, rgba(99,102,241,.14), transparent 50%);
+}
+.auth-card{
+  max-width:460px; width:100%;
+  background:linear-gradient(180deg, rgba(18,17,41,.96), rgba(18,17,41,.86));
+  border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:28px; color:var(--text);
+}
+.auth-input{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+.auth-input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--ring); }
+.auth-title{ font-size:28px; margin:0 0 6px; font-weight:800; }
+.auth-sub{ color:var(--muted); margin:0 0 22px; }
+.auth-actions{ margin-top:18px; display:flex; align-items:center; gap:12px; justify-content:space-between; }
+.auth-error{ background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); }
