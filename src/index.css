@@ -134,3 +134,33 @@ input:focus, select:focus, textarea:focus{
 
 .card small { color:#e9e7ff; font-weight:600; opacity:1 !important; }
 
+
+main h1 + p,
+main h1 + small {
+  color: #e6e3ff !important;
+  opacity: 1 !important;
+  font-weight: 600;
+  letter-spacing: .2px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Títulos y textos de tiles/tarjetas (los que tienen el botón “Ir”) */
+.card > h4, .card > h3, .tile .tile-title {
+  color: #f4f3ff !important;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+.card small, .tile .tile-desc {
+  color: #dcd9ff !important;
+  opacity: 1 !important;
+}
+
+/* Cancelar opacidades sueltas que lavan texto */
+.card [style*="opacity"],
+.home-hero [style*="opacity"] {
+  opacity: 1 !important;
+}
+

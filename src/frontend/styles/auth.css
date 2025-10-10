@@ -29,3 +29,37 @@
 .auth-form label{ color:#d6d4ff; }
 
 .auth-wrap{ padding: 24px 0; }
+
+/* --- Layout auth: inputs anchos y Mostrar a la derecha --- */
+.auth-card { max-width: 520px; width: 100%; }
+
+/* Fila de contraseña: input + botón Mostrar en una línea */
+.auth-card input[type="password"]{
+  display: inline-block;
+  width: calc(100% - 120px);      /* deja espacio al botón */
+  vertical-align: middle;
+}
+.auth-card input[type="password"] + .btn-primary{
+  display: inline-block;          /* solo el botón inmediato (Mostrar) */
+  width: 110px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+/* El botón “Entrar” y el resto, a la línea siguiente con buen espacio */
+.auth-card input[type="password"] + .btn-primary + *{
+  display: block;
+  margin-top: 14px;
+}
+
+/* Orden visual estable en el formulario */
+.auth-form{ display:grid; gap:12px; }
+.auth-form label{ color:#dcd9ff; }
+.auth-input{ width:100%; }
+
+/* Mantener input de contraseña + botón Mostrar en línea */
+.auth-card input[type="password"]{
+  display:inline-block; width:calc(100% - 120px); vertical-align:middle;
+}
+.auth-card input[type="password"] + .btn-primary{
+  display:inline-block; width:110px; margin-left:10px; vertical-align:middle;
+}
