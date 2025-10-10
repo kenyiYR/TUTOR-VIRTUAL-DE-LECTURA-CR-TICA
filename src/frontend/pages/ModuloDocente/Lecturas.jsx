@@ -49,11 +49,12 @@ export default function LecturasDocente(){
 
   return (
 
-    <div className="panel-wrap">
-      <div className="card" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <h3 style={{ margin: 0 }}>Asignación de lecturas</h3>
-      <Link className="btn" to="/docente/tablero">Ver tablero</Link>
+    <div className="page-wrap">
+      <div className="section-header">
+      <h3>Asignación de lecturas</h3>
+      <Link className="link-btn" to="/docente/tablero">Ver tablero</Link>
     </div>
+    
     
     <div className="panel-wrap">
       <div className="card" style={{maxWidth:800, margin:'0 auto 16px'}}>

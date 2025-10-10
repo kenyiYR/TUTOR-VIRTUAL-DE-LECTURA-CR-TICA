@@ -48,10 +48,12 @@ export default function Estudiante() {
 
   return (
 
-<div className="panel-wrap">
-  <div className="card" style={{marginBottom:12, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-    <h3 style={{margin:0}}>Módulo de estudiante</h3>
-    <Link className="btn" to="/estudiante/lecturas">Ver lecturas asignadas</Link>
+<div className="page-wrap">
+  <div className="section-header">
+  <h3>Módulo de estudiante</h3>
+  <div className="actions">
+    <Link className="link-btn" to="/estudiante/lecturas">Ver lecturas asignadas</Link>
+  </div>
   </div>
 
     <Container className="my-5">

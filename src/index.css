@@ -164,3 +164,116 @@ main h1 + small {
   opacity: 1 !important;
 }
 
+.site-nav .nav-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display:flex; align-items:center;
+}
+.site-nav .nav-left{ display:flex; align-items:center; gap:16px; }
+.site-nav .nav-right{
+  margin-left:auto;
+  display:flex; align-items:center; gap:12px;
+}
+
+/* badge de sesión */
+.session-badge{
+  color:#e6e3ff;
+  background: rgba(139,92,246,.14);
+  border:1px solid rgba(139,92,246,.35);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:13px;
+}
+
+/* botón claro del nav */
+.btn-outline{
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--accent);
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.btn-outline:hover{ background:var(--accent); color:#0b0a16; }
+
+/* subtítulos/guides bajo títulos de sección */
+.section-subtitle,
+.card .subtitle,
+.lead,
+.help-text {
+  color:#dcd9ff !important;   /* claro, legible */
+  opacity:1 !important;
+  font-weight: 600;
+}
+
+/* encabezado superior tipo barra en cada módulo */
+.section-header{
+  margin: 10px 0 12px;
+  background: linear-gradient(180deg, rgba(19,18,44,.92), rgba(19,18,44,.82));
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.section-header h3{ margin:0; color:#f7f6ff; }
+.section-header .actions{ display:flex; gap:10px; }
+
+/* link botón sutil para acciones en barras de sección */
+.link-btn{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid var(--accent);
+  color:var(--text); text-decoration:none;
+}
+.link-btn:hover{ background:var(--accent); color:#0b0a16; }
+
+
+/* ===== CONTENEDOR DE PÁGINA UNIFICADO ===== */
+.page-wrap{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+}
+
+/* ===== HEADER DE SECCIÓN (full width, centrado) ===== */
+.section-header{
+  width: 100%;
+  max-width: 1100px;
+  margin: 12px auto;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(19,18,44,.92), rgba(19,18,44,.82));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.section-header h3{ margin: 0; color: #f7f6ff; }
+.section-header .actions{ display: flex; gap: 10px; }
+
+/* ===== SUBTÍTULOS/AYUDAS SIEMPRE LEGIBLES ===== */
+.section-subtitle, .card .subtitle, .lead, .help-text {
+  color: #dcd9ff !important;
+  opacity: 1 !important;
+  font-weight: 600;
+}
+
+/* ===== OVERRIDE SUAVE A BOOTSTRAP ===== */
+/* Muchos "text-muted" vienen con gris lavado, lo subimos */
+.text-muted, .small, small, .form-text {
+  color: #dcd9ff !important;
+  opacity: 1 !important;
+}
+/* Si Bootstrap usa variables CSS, forzamos tonos acordes al tema */
+:root{
+  --bs-body-color: var(--text);
+  --bs-secondary-color: #dcd9ff;
+  --bs-heading-color: #fbfaff;
+}
+
+/* Por si quedó algún "header" como card vieja, lo hacemos ancho completo */
+.panel-wrap > .card.header {
+  width: 100%;
+  max-width: 1100px;
+  margin: 12px auto;
+}
