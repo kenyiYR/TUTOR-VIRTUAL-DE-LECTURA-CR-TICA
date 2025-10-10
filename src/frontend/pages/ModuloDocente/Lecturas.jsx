@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listMyReadings, uploadReading } from '../../services/readings.js';
 import { assignReading } from '../../services/assignments.js';
+import { Link } from 'react-router-dom';
 import '../../styles/panel.css';
 
 export default function LecturasDocente(){
@@ -47,6 +48,13 @@ export default function LecturasDocente(){
   }
 
   return (
+
+    <div className="panel-wrap">
+      <div className="card" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <h3 style={{ margin: 0 }}>Asignación de lecturas</h3>
+      <Link className="btn" to="/docente/tablero">Ver tablero</Link>
+    </div>
+    
     <div className="panel-wrap">
       <div className="card" style={{maxWidth:800, margin:'0 auto 16px'}}>
         <h3>Subir nueva lectura</h3>
@@ -88,6 +96,7 @@ export default function LecturasDocente(){
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 }

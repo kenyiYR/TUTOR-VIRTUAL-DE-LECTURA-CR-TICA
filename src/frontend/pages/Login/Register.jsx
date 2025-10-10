@@ -18,7 +18,8 @@ export default function Register() {
     setErr(''); setLoading(true);
     try{
       const user = await register({ nombre, email, password, rol });
-      if (user.rol === 'docente') navigate('/docente');
+      if (user?.rol === 'docente') {navigate('/docente', {replace: true});
+    }
       else if (user.rol === 'estudiante') navigate('/estudiante');
       else navigate('/perfil');
     }catch(e){ setErr(e.message); }

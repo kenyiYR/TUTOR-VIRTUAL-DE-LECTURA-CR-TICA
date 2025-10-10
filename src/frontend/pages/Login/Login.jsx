@@ -18,7 +18,9 @@ export default function Login() {
     try{
       const user = await login({ email, password });
       // redirige por rol
-      if (user.rol === 'docente') navigate('/docente');       // directo a editar perfil
+      if (user?.role === "docente") {
+          navigate("/docente/lecturas", { replace: true });
+          }       // directo a editar perfil
       else if (user.rol === 'estudiante') navigate('/estudiante');
       else navigate('/perfil');
     }catch(e){
