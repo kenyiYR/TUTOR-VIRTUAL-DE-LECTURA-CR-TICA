@@ -57,9 +57,30 @@
 .auth-input{ width:100%; }
 
 /* Mantener input de contraseña + botón Mostrar en línea */
+.auth-card input:has(+ .btn-primary){
+  display:inline-block;
+  width: calc(100% - 120px);   /* deja hueco fijo para el botón */
+  vertical-align: middle;
+  height: 44px;                /* altura consistente */
+}
+
+.auth-card input:has(+ .btn-primary) + .btn-primary{
+  display:inline-block; 
+  width: 110px;                /* ancho fijo para que no “salte” al cambiar texto */
+  margin-left: 10px;
+  vertical-align: middle;
+  height: 44px;
+  line-height: 44px;           /* alinea el texto del botón verticalmente */
+  padding: 0 12px;             /* evita crecimiento raro por padding */
+}
+
+/* Espaciado sano del resto del formulario */
+.auth-form{ display:grid; gap:12px; }
+
+/* Fallback simple: si por alguna razón no matchea :has, al menos cuando sea password funciona */
 .auth-card input[type="password"]{
-  display:inline-block; width:calc(100% - 120px); vertical-align:middle;
+  display:inline-block; width: calc(100% - 120px); vertical-align: middle; height:44px;
 }
 .auth-card input[type="password"] + .btn-primary{
-  display:inline-block; width:110px; margin-left:10px; vertical-align:middle;
+  display:inline-block; width:110px; margin-left:10px; vertical-align: middle; height:44px; line-height:44px; padding:0 12px;
 }
