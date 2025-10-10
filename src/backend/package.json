@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "coverage": "cross-env NODE_ENV=test jest --coverage --runInBand"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",
@@ -20,6 +23,13 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@babel/preset-env": "^7.28.3",
+    "@types/jest": "^30.0.0",
+    "babel-jest": "^30.2.0",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^10.2.3",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }
