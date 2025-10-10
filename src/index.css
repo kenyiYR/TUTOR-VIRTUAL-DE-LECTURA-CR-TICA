@@ -1,18 +1,19 @@
 /* ===== THEME GLOBAL MORADO/NEGRO ===== */
 :root{
-  --bg: #0a0a13;
-  --bg2:#0b0a16;
+  --bg:#070713;
+  --bg2:#0a0a16;
   --surface:#0e0d1d;
-  --card:#121129;
-  --text:#ecebff;
-  --muted:#b8b4d9;
-  --accent:#8b5cf6;           /* morado principal */
-  --accent-strong:#7c3aed;    /* hover */
+  --card:#13122c;              /* más oscuro para contraste */
+  --text:#f5f4ff;              /* texto más claro */
+  --muted:#d1cef9;             /* subtítulos legibles */
+  --accent:#8b5cf6;
+  --accent-strong:#7c3aed;
   --ring: rgba(139,92,246,.35);
   --border:#211b3a;
-  --shadow: 0 14px 40px rgba(6,4,15,.55);
+  --shadow:0 14px 40px rgba(6,4,15,.55);
   --radius:16px;
 }
+
 
 html,body,#root{height:100%;}
 body{
@@ -58,3 +59,78 @@ main{ min-height: calc(100vh - 120px); padding-bottom: 40px; }
   border:1px solid var(--border); border-radius:var(--radius); box-shadow: var(--shadow);
   padding:18px;
 }
+
+.hero-card, .home-hero, .section-hero {
+  background: linear-gradient(180deg, rgba(19,18,44,.96), rgba(19,18,44,.88));
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.hero-card h1, .home-hero h1 { color:#fff; }
+.hero-card p,  .home-hero p  { color:#e9e7ff; }
+
+/* ===== CONTRASTE GLOBAL (títulos y texto) ===== */
+main h1, main h2, main h3, main h4 {
+  color: #fbfaff;            /* casi blanco */
+  letter-spacing:.2px;
+}
+
+main p, main li, main small, main span {
+  color: var(--muted);
+}
+
+/* En tarjetas/secciones oscuras, obliga buen contraste */
+.card, .auth-card, .panel-wrap .card {
+  color: var(--text);
+}
+.card h1, .card h2, .card h3,
+.auth-card h1, .auth-card h2, .auth-card h3 {
+  color: #f8f7ff;
+}
+.card p, .card li,
+.auth-card p, .auth-card li {
+  color: #e5e3ff;
+}
+
+/* Si algún componente dejó opacidad en headings o texto, neutralízala aquí */
+.card [style*="opacity"], .auth-card [style*="opacity"] {
+  opacity: 1 !important;
+}
+
+/* Listas en cards más claras */
+.card ul li::marker { color: var(--accent); }
+
+main h1, main h2, main h3, main h4, main h5, main h6 {
+  color:#fbfaff;
+  opacity:1 !important;   /* cancela opacidades heredadas */
+  letter-spacing:.2px;
+}
+main p, main li, main small, main span { color:var(--muted); opacity:1 !important; }
+
+/* Cards y secciones oscuras */
+.card, .auth-card { color:var(--text); }
+.card :where(h1,h2,h3,h4,h5,h6){ color:#f8f7ff; }
+.card :where(p,li,small){ color:#e7e5ff; }
+
+/* “Hero” del home: si tu contenedor tiene esa card grande */
+.home-hero{
+  background:linear-gradient(180deg, rgba(19,18,44,.96), rgba(19,18,44,.88));
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.home-hero :where(h1,h2){ color:#ffffff; }
+.home-hero :where(p,small){ color:#e9e7ff; }
+
+/* Tiles del home (los que tienen el botón “Ir”) */
+.tile, .tile .card{ display:flex; flex-direction:column; }
+.tile .tile-title, .card > h4, .card > h3 { color:#ecebff; font-weight:700; opacity:1 !important; }
+.tile .tile-desc { color:#d7d5ff; }
+.tile .tile-actions { margin-top:auto; }
+
+/* Botones/inputs mantienen foco morado */
+.btn-primary:hover{ background:var(--accent-strong); }
+input:focus, select:focus, textarea:focus{
+  border-color:var(--accent); box-shadow:0 0 0 3px var(--ring);
+}
+
+.card small { color:#e9e7ff; font-weight:600; opacity:1 !important; }
+
