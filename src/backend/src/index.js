@@ -82,3 +82,17 @@ process.on('SIGINT', async () => {
   await mongoose.connection.close();
   process.exit(0);
 });
+
+export { app }
+
+if (process.env.NODE_ENV !== "test") {
+  connectDB()
+    .then(() => {
+      const PORT = process.env.PORT || 4000;
+      app.listen(PORT, () => logger.info(`API en http://localhost:${PORT}`));
+    })
+    .catch((err) => {
+      logger.error({ err }, "No se pudo conectar a MongoDB");
+      process.exit(1);
+    });
+  }
