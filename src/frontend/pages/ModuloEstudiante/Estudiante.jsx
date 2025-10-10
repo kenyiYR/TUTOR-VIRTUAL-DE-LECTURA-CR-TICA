@@ -47,6 +47,13 @@ export default function Estudiante() {
   };
 
   return (
+
+<div className="panel-wrap">
+  <div className="card" style={{marginBottom:12, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+    <h3 style={{margin:0}}>Módulo de estudiante</h3>
+    <Link className="btn" to="/estudiante/lecturas">Ver lecturas asignadas</Link>
+  </div>
+
     <Container className="my-5">
       <h2>Módulo Estudiante</h2>
       <p className="text-muted">Textos sugeridos, subida de texto, análisis crítico y gamificación.</p>
@@ -100,5 +107,6 @@ export default function Estudiante() {
         </Card>
       )}
     </Container>
+    </div>
   );
 }
