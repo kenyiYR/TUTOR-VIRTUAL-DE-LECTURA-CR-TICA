@@ -17,3 +17,15 @@
 .auth-sub{ color:var(--muted); margin:0 0 22px; }
 .auth-actions{ margin-top:18px; display:flex; align-items:center; gap:12px; justify-content:space-between; }
 .auth-error{ background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); }
+
+.auth-card{ max-width:480px; width:100%; }
+.auth-title{ font-size:28px; margin:0 0 6px; font-weight:800; }
+.auth-sub{ color:var(--muted); margin:0 0 20px; }
+
+.auth-form{ display:grid; gap:12px; }
+.auth-form .row{ display:flex; gap:10px; align-items:center; }
+.auth-input{ width:100%; }             
+.auth-actions{ display:flex; gap:12px; justify-content:space-between; align-items:center; }
+.auth-form label{ color:#d6d4ff; }
+
+.auth-wrap{ padding: 24px 0; }
