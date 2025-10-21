@@ -1,0 +1,88 @@
+# =========================
+# pruebas_curl.txt
+# TPISI2 - Pruebas de Rutas API (MERN)
+# Base URL: http://localhost:4000
+# Requisitos de la consigna: título, descripción (40-50 palabras), comando y respuesta esperada.
+# =========================
+
+# Helper (opcional): exporta la URL base y, tras login, el TOKEN con jq.
+# Linux/Mac (bash/zsh):
+#   export BASE_URL=http://localhost:4000
+#   export TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+#     -H "Content-Type: application/json" \
+#     -d '{"email":"ana@example.com","password":"secreto123"}' | jq -r '.token')
+# Windows PowerShell:
+#   $env:BASE_URL="http://localhost:4000"
+#   $resp = curl -Method POST "$env:BASE_URL/api/auth/login" -Headers @{"Content-Type"="application/json"} -Body '{"email":"ana@example.com","password":"secreto123"}'
+#   $env:TOKEN = ($resp.Content | ConvertFrom-Json).token
+
+=== 1) REGISTRO DE USUARIO (POST /api/auth/register) ===
+Descripción: Crea un usuario nuevo enviando nombre, email, contraseña y rol (estudiante/docente). Verifica que el backend responda con 201/200, incluya un token JWT y devuelva los datos básicos del usuario creado. Este endpoint permite poblar el sistema con cuentas reales para las pruebas siguientes.
+Comando:
+curl -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Ana López","email":"ana@example.com","password":"secreto123","role":"student"}'
+Respuesta esperada:
+{"ok":true,"user":{"nombre":"Ana L�pez","email":"ana@example.com","rol":"estudiante","_id":"68f6e2c0dbf01c3110e1e19f","createdAt":"2025-10-21T01:32:48.588Z","updatedAt":"2025-10-21T01:32:48.588Z"},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGY2ZTJjMGRiZjAxYzMxMTBlMWUxOWYiLCJyb2xlIjoiZXN0dWRpYW50ZSIsImlhdCI6MTc2MTAxMDM2OCwiZXhwIjoxNzYxMDk2NzY4fQ.U_a0jPuNCP1MjgT5r0weGN266yieRHY9-E-TPAvn8JI"}
+
+=== 2) LOGIN (POST /api/auth/login) ===
+Descripción: Autentica con email y contraseña. Debe devolver 200 y un token JWT utilizable en la cabecera Authorization para endpoints protegidos. La prueba valida credenciales válidas y que el payload incluya datos mínimos del usuario (id, email y rol) necesarios para flujos posteriores.
+Comando:
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ana@example.com","password":"secreto123"}'
+Respuesta esperada:
+{"ok":true,"user":{"_id":"68f6e2c0dbf01c3110e1e19f","nombre":"Ana L�pez","email":"ana@example.com","rol":"estudiante","createdAt":"2025-10-21T01:32:48.588Z","updatedAt":"2025-10-21T01:32:48.588Z"},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGY2ZTJjMGRiZjAxYzMxMTBlMWUxOWYiLCJyb2xlIjoiZXN0dWRpYW50ZSIsImlhdCI6MTc2MTAxMDU2NiwiZXhwIjoxNzYxMDk2OTY2fQ.66SfkEizJmKz55Tt0zbTlw-D2rxQ0_kmWx8gWoJvyg8"}
+
+=== 3) PERFIL DOCENTE - ACTUALIZAR (PUT /api/teachers/profile) ===
+Descripción: Con token de un docente, actualiza datos de perfil como especialidad y bio. Valida autorización (401/403 si falta/rol incorrecto) y respuesta 200 con el perfil persistido. Esta ruta simula la configuración inicial del profesor antes de asignar lecturas.
+Comando:
+curl -X PUT http://localhost:4000/api/teachers/profile \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGY2ZTdiYmRiZjAxYzMxMTBlMWUxYTQiLCJyb2xlIjoiZXN0dWRpYW50ZSIsImlhdCI6MTc2MTAxMTY0MywiZXhwIjoxNzYxMDk4MDQzfQ.kFLOjKfXKrilYNWDNI00GI2rRCYKP7bjwDa2BOkoNwE" -H "Content-Type: application/json" \
+  -d '{"fullName":"Prof. Rivera","subject":"Lengua","bio":"Docente de comprensión lectora."}'
+Respuesta esperada:
+{"ok":true,"profile":{"id":"<id>","fullName":"Prof. Rivera","subject":"Lengua","bio":"Docente de comprensión lectora."}}
+
+=== 4) CREAR LECTURA (POST /api/readings) ===
+Descripción: El docente registra una lectura disponible para asignar. Se envía título, descripción y URL del archivo (p.ej., almacenado en Supabase). Debe responder 201 y devolver el recurso creado. Si tu API usa multipart para subir archivo, adapta a -F "file=@/ruta/archivo.pdf".
+Comando:
+curl -X POST http://localhost:4000/api/readings \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGY2ZTdiYmRiZjAxYzMxMTBlMWUxYTQiLCJyb2xlIjoiZXN0dWRpYW50ZSIsImlhdCI6MTc2MTAxMTY0MywiZXhwIjoxNzYxMDk4MDQzfQ.kFLOjKfXKrilYNWDNI00GI2rRCYKP7bjwDa2BOkoNwE" -H "Content-Type: application/json" \
+  -d '{"title":"Ensayo sobre IA","description":"Lectura base sobre IA y educación.","fileUrl":"https://TU_SUPABASE/lecturas/ia.pdf"}'
+Respuesta esperada:
+{"ok":true,"reading":{"id":"<id>","title":"Ensayo sobre IA","fileUrl":"https://..." }}
+
+=== 5) ASIGNAR LECTURA A ESTUDIANTE (POST /api/assignments) ===
+Descripción: Con rol docente, asigna una lectura a un estudiante con fecha límite. Debe validar permisos y existencia de readingId y studentId. Responde 201 y guarda el vínculo docente–estudiante–lectura para el panel del alumno.
+Comando:
+curl -X POST http://localhost:4000/api/assignments \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"readingId":"<readingId>","studentId":"<studentUserId>","dueDate":"2025-10-20"}'
+Respuesta esperada:
+{"ok":true,"assignment":{"id":"<id>","readingId":"<readingId>","studentId":"<studentUserId>","status":"assigned"}}
+
+=== 6) LISTAR LECTURAS ASIGNADAS (GET /api/assignments/mine) ===
+Descripción: Como estudiante autenticado, obtiene el listado de lecturas asignadas. Debe responder 200 con un arreglo; cada item contiene metadatos, estado (assigned/read/submitted) y fechas. Útil para poblar el “Panel de lecturas asignadas” del alumno.
+Comando:
+curl -X GET http://localhost:4000/api/assignments/mine \
+  -H "Authorization: Bearer $TOKEN"
+Respuesta esperada:
+{"ok":true,"items":[{"id":"<assignmentId>","reading":{"title":"Ensayo sobre IA"},"status":"assigned"}]}
+
+=== 7) MARCAR COMO LEÍDA (PATCH /api/assignments/:id/read) ===
+Descripción: El estudiante marca una lectura como leída. La API debe validar el ownership (403 si intenta marcar otra cuenta) y devolver 200 con el estado actualizado. Este flujo alimenta métricas de avance.
+Comando:
+curl -X PATCH http://localhost:4000/api/assignments/<assignmentId>/read \
+  -H "Authorization: Bearer $TOKEN"
+Respuesta esperada:
+{"ok":true,"assignment":{"id":"<assignmentId>","status":"read"}}
+
+=== 8) ENVIAR ENTREGA (POST /api/submissions) ===
+Descripción: El estudiante sube su entrega (archivo o texto) asociada a la asignación. Si tu endpoint usa multipart, envía el archivo con -F; si usa texto/URL, envía JSON. Responde 201 con datos de la entrega para revisión del docente.
+Comando (multipart ejemplo):
+curl -X POST http://localhost:4000/api/submissions \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "assignmentId=<assignmentId>" \
+  -F "file=@/ruta/mi_resumen.pdf"
+Respuesta esperada:
+{"ok":true,"submission":{"id":"<id>","assignmentId":"<assignmentId>","fileUrl":"https://..."}}
