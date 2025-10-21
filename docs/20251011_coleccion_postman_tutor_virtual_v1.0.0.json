@@ -1,0 +1,492 @@
+{
+	"info": {
+		"_postman_id": "a4b5b9f3-35a6-4887-b11e-ac9d4a6b9642",
+		"name": "Tutor Virtual — API",
+		"description": "- Autenticación\n    \n- Gestión de Usuarios\n    \n- Lecturas\n    \n- Asignaciones\n    \n- Salud (ops)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45144311",
+		"_collection_link": "https://eduardo-4146059.postman.co/workspace/07da7471-0323-447c-8f62-e0eabd3c1f08/collection/45144311-a4b5b9f3-35a6-4887-b11e-ac9d4a6b9642?action=share&source=collection_link&creator=45144311"
+	},
+	"item": [
+		{
+			"name": "Autenticación",
+			"item": [
+				{
+					"name": "Registrar Usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201/200\", () => pm.expect(pm.response.code).to.be.oneOf([200,201]));\r",
+									"const json = pm.response.json();\r",
+									"pm.test(\"Devuelve token\", () => pm.expect(json.token).to.be.a(\"string\"));\r",
+									"pm.test(\"Usuario con email\", () => pm.expect(json.user.email).to.match(/@/));\r",
+									"pm.environment.set(\"teacherId\", json.user?._id || json.user?.id || \"\");\r",
+									"pm.environment.set(\"token\", json.token || \"\");\r",
+									"const r = pm.response.json();\r",
+									"pm.environment.set(\"email\", r.user?.email);\r",
+									"pm.environment.set(\"password\", \"secreto123\"); // la que enviaste al registrar\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Ana Test\",\r\n  \"email\": \"ana{{$timestamp}}@example.com\",\r\n  \"password\": \"secreto123\",\r\n  \"rol\": \"docente\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									"const json = pm.response.json();\r",
+									"pm.test(\"Token JWT presente\", () => pm.expect(json.token).to.be.a(\"string\"));\r",
+									"pm.environment.set(\"token\", json.token || r.data?.token);\r",
+									"pm.environment.set(\"teacherId\", json.user?._id || json.user?.id || pm.environment.get(\"teacherId\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"{{email}}\", \"password\": \"{{password}}\" }\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Gestión de Usuarios",
+			"item": [
+				{
+					"name": "Perfil",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									"\r",
+									"const body = pm.response.json();\r",
+									"const u = body.user || body;\r",
+									"\r",
+									"pm.test(\"Tiene email y role\", () => {\r",
+									"  pm.expect(u.email).to.match(/@/);\r",
+									"  const role = u.role ?? u.rol;\r",
+									"  pm.expect(role).to.be.oneOf([\"docente\", \"estudiante\"]);\r",
+									"});\r",
+									"\r",
+									"// guarda IDs según el rol\r",
+									"const uid = u._id || u.id;\r",
+									"const role = u.role ?? u.rol;\r",
+									"pm.environment.set(\"teacherId\", role === \"docente\" ? uid : pm.environment.get(\"teacherId\"));\r",
+									"pm.environment.set(\"studentId\", role === \"estudiante\" ? uid : pm.environment.get(\"studentId\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lecturas",
+			"item": [
+				{
+					"name": "Crear Lectura (docente)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201/200\", () => pm.expect(pm.response.code).to.be.oneOf([200,201]));\r",
+									"const r = pm.response.json().reading || pm.response.json();\r",
+									"pm.test(\"Lectura con título\", () => pm.expect(r.titulo).to.be.a(\"string\"));\r",
+									"pm.environment.set(\"readingId\", r._id || r.id || \"\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f0adff4-9190-4e90-add5-b51cf486d4f6"
+								},
+								{
+									"key": "titulo",
+									"value": "Ensayo sobre lectura crítica",
+									"type": "text"
+								},
+								{
+									"key": "descripcion",
+									"value": "Introducción corta",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/readings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"readings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Lecturas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									"const arr = pm.response.json().readings || pm.response.json();\r",
+									"pm.test(\"Devuelve arreglo\", () => pm.expect(arr).to.be.an(\"array\"));\r",
+									"if (arr.length) pm.environment.set(\"readingId\", arr[0]._id || arr[0].id || \"\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/readings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"readings"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Asignaciones",
+			"item": [
+				{
+					"name": "Asignar Lectura a Estudiante",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201/200\", () => pm.expect(pm.response.code).to.be.oneOf([200,201]));\r",
+									"const r = pm.response.json();\r",
+									"const arr = r.assignments || [];\r",
+									"pm.test(\"Hay asignaciones\", () => pm.expect(arr.length).to.be.greaterThan(0));\r",
+									"pm.environment.set(\"assignmentId\", arr[0]?._id || \"\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentIds\": [\"{{studentId}}\"],\r\n  \"readingId\": \"{{readingId}}\",\r\n  \"dueDate\": \"2025-10-30T23:59:00.000Z\",\r\n  \"notes\": \"Primera asignación\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/assignments/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"assignments",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mis Asignaciones (estudiante)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"200\", ()=>pm.response.to.have.status(200));\r",
+									"const list = pm.response.json().assignments || [];\r",
+									"pm.test(\"Hay asignaciones\", ()=>pm.expect(list.length).to.be.greaterThan(0));\r",
+									"pm.environment.set(\"assignmentId\", list[0]?._id || \"\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/assignments/my",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"assignments",
+								"my"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Salud (ops)",
+			"item": [
+				{
+					"name": "/health",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"API viva\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
+									"  pm.expect(pm.response.json().ok).to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/db/health",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"DB conectada\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
+									"  const j = pm.response.json();\r",
+									"  pm.expect(j.state).to.be.oneOf([\"connected\",\"connecting\",\"disconnected\",\"disconnecting\"]);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/db/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"db",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"if (!pm.request.headers.has('Content-Type')) {\r",
+					"  pm.request.headers.add({ key: 'Content-Type', value: 'application/json' });\r",
+					"}\r",
+					"if (pm.environment.get(\"token\")) {\r",
+					"  pm.request.headers.add({ key: \"Authorization\", value: `Bearer ${pm.environment.get(\"token\")}` });\r",
+					"}\r",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
