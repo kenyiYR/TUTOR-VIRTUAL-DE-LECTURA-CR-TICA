@@ -16,12 +16,14 @@ const assignSchema = z.object({
 export async function assignReading(req, res, next) {
   try {
     const { readingId, studentIds, dueDate } = assignSchema.parse(req.body);
+
     const reading = await Reading.findById(readingId);
-    if (!reading) return res.status(404).json({ ok:false, error:'Lectura no encontrada' });
-    // solo el autor puede asignar su lectura
+    if (!reading) return res.status(404).json({ ok: false, error: 'Lectura no encontrada' });
+
     if (String(reading.createdBy) !== String(req.userId)) {
-      return res.status(403).json({ ok:false, error:'No autorizado' });
+      return res.status(403).json({ ok: false, error: 'No autorizado' });
     }
+
 
     const ops = studentIds.map(student => ({
       updateOne: {
@@ -30,9 +32,28 @@ export async function assignReading(req, res, next) {
         upsert: true
       }
     }));
-    await Assignment.bulkWrite(ops);
-    res.status(201).json({ ok:true });
-  } catch (e) { next(e); }
+    const result = await Assignment.bulkWrite(ops);
+
+
+    const assignments = await Assignment.find({
+      reading: reading._id,
+      student: { $in: studentIds }
+    })
+      .select('_id student reading dueDate readAt submission feedback createdAt updatedAt')
+      .lean();
+
+    return res.status(201).json({
+      ok: true,
+      assignments,              
+      stats: {
+        upserted: result.upsertedCount,
+        matched: result.matchedCount,
+        modified: result.modifiedCount
+      }
+    });
+  } catch (e) {
+    next(e);
+  }
 }
 
 export async function listMyAssignmentsStudent(req, res, next) {
