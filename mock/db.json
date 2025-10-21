@@ -1,0 +1,58 @@
+{
+  "me": {
+    "user": {
+      "id": "u1",
+      "nombre": "Ana Docente",
+      "email": "ana@demo.com",
+      "rol": "docente"
+    }
+  },
+  "users": [
+    {
+      "id": "u1",
+      "rol": "docente",
+      "nombre": "Ana Docente",
+      "email": "ana@demo.com"
+    },
+    {
+      "id": "u2",
+      "rol": "estudiante",
+      "nombre": "Luis Estudiante",
+      "email": "luis@demo.com"
+    }
+  ],
+  "readings": [
+    {
+      "id": "r1",
+      "titulo": "La importancia del pensamiento crítico",
+      "descripcion": "Texto base.",
+      "fileUrl": "https://example.com/critico.pdf",
+      "authorId": "u1"
+    },
+    {
+      "titulo": "Ensayo sobre lectura cr�tica",
+      "descripcion": "Intro corta",
+      "fileUrl": "https://example.com/lectura.pdf",
+      "id": "pQ2JYl0"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "a1",
+      "readingId": "r1",
+      "studentId": "u2",
+      "status": "assigned",
+      "assignedAt": "2025-10-10T10:00:00Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "s1",
+      "assignmentId": "a1",
+      "studentId": "u2",
+      "fileUrl": "https://example.com/entregas/u2-a1.pdf",
+      "feedback": "Buen análisis inicial.",
+      "score": 17
+    }
+  ]
+}

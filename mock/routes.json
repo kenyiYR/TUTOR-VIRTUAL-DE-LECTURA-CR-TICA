@@ -1,0 +1,16 @@
+{
+  "/api/auth/me": "/me",
+
+  "/api/readings": "/readings",
+  "/api/readings/:id": "/readings/:id",
+
+  "/api/assignments": "/assignments",
+  "/api/assignments/:id": "/assignments/:id",
+
+  "/api/assignments/assign": "/assignments",
+  "/api/assignments/my": "/assignments?studentId=u2",
+
+  "/api/assignments/:id/read": "/assignments/:id",
+  "/api/submissions": "/submissions",
+  "/api/assignments/:id/submissions": "/submissions?assignmentId=:id"
+}
