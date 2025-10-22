@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, jest } from "@jest/globals";
 import { validateEmail, validatePassword, validateFullName } from "../authValidators";
 
 describe("authValidators", () => {

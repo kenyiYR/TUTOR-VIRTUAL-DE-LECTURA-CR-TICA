@@ -67,11 +67,18 @@ async function bootstrap() {
 }
 
 // Solo arranca si este archivo es el entrypoint (evita doble listen en tests)
-if (process.env.NODE_ENV !== 'test') {
-  bootstrap().catch(err => {
-    logger.error({ err }, 'No se pudo iniciar la API');
-    process.exit(1);
-  });
+if (process.env.NODE_ENV !== "test") {
+  connectDB()
+    .then(() => {
+      const PORT = process.env.PORT || 4000;
+      const server = app.listen(PORT, () => logger.info(`API en http://localhost:${PORT}`));
+      // cierre limpio (evita EADDRINUSE con nodemon)
+      const shutdown = (why) => server.close(() => process.exit(0));
+      process.on("SIGTERM", () => shutdown("SIGTERM"));
+      process.on("SIGINT",  () => shutdown("SIGINT"));
+      process.once("SIGUSR2", () => { shutdown("SIGUSR2"); process.kill(process.pid, "SIGUSR2"); });
+    })
+    .catch((err) => { logger.error({ err }, "No se pudo conectar a MongoDB"); process.exit(1); });
 }
 
 // higiene
