@@ -6,8 +6,9 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "cross-env NODE_ENV=test jest --runInBand",
+    "coverage": "cross-env NODE_ENV=test jest --coverage --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
-    "coverage": "cross-env NODE_ENV=test jest --coverage --runInBand"
+    "coverage:strict": "cross-env NODE_ENV=test jest --coverage --runInBand --coverageThreshold='{\"global\":{\"lines\":50,\"statements\":50,\"branches\":40,\"functions\":50}}'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",
