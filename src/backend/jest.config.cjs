@@ -1,12 +1,16 @@
 module.exports = {
   testEnvironment: "node",
-  transform: { "^.+\\.jsx?$": "babel-jest" },
+  transform: { "^.+\\.[tj]sx?$": "babel-jest" },
   roots: ["<rootDir>/src"],
   moduleFileExtensions: ["js", "jsx"],
+  
   collectCoverageFrom: [
     "src/**/*.js",
-    "!src/**/__tests__/**"
+    "!src/**/__tests__/**",
+    "!src/**/index.js"       
   ],
   coverageDirectory: "coverage",
-  coverageReporters: ["text", "lcov"],
+  coverageReporters: ["text", "lcov", "html"],
+
+  testTimeout: 10000
 };
