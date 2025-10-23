@@ -24,7 +24,7 @@ describe("reading.controller.createReading", () => {
   });
 
   test("400 si no hay archivo", async () => {
-    const { req, res } = fakeReqRes({ titulo: "T", descripcion: "" });
+    const { req, res } = fakeReqRes({ titulo: "T2", descripcion: "" });
     req.userId = "u1";
     const next = jest.fn();
 

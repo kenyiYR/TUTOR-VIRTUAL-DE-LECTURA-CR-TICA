@@ -40,13 +40,19 @@ export async function login(req, res, next) {
   try {
     const { email, password } = loginSchema.parse(req.body);
     const emailNorm = email.trim().toLowerCase();
+
     const user = await User.findOne({ email: emailNorm });
     if (!user) return res.status(404).json({ ok: false, error: "Usuario no encontrado" });
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    // Soporta passwordHash o password por si el modelo varía
+    const hash = user.passwordHash ?? user.password ?? "";
+    const ok = await bcrypt.compare(password, hash);
     if (!ok) return res.status(401).json({ ok: false, error: "Credenciales inválidas" });
 
     const token = signToken(user);
-    res.status(200).json({ ok: true, user: user.toJSON(), token });
+    const dto = user.toJSON ? user.toJSON() : { _id: user._id, email: user.email, rol: user.rol };
+
+    // Normaliza email en la respuesta
+    return res.status(200).json({ ok: true, user: { ...dto, email: emailNorm }, token });
   } catch (err) { next(err); }
 }

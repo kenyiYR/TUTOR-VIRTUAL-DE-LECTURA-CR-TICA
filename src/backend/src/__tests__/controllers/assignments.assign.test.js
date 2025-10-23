@@ -1,4 +1,4 @@
-// src/__tests__/controllers/assignments.assign.test.js
+// Mock mínimo para que ningún import de supabase valide envs
 jest.mock("@supabase/supabase-js", () => ({
   createClient: () => ({ auth: {}, storage: { from: () => ({}) } })
 }));
@@ -9,7 +9,6 @@ jest.mock("../../models/User.js");
 
 import Assignment from "../../models/Assignment.js";
 import Reading from "../../models/Reading.js";
-import User from "../../models/User.js";
 import { assignReading } from "../../controllers/assignment.controller.js";
 import { fakeReqRes } from "../helpers/test-utils.helper.js";
 
@@ -18,12 +17,11 @@ describe("AssignmentsController.assign", () => {
 
   test("asigna lectura OK", async () => {
     Reading.findById = jest.fn().mockResolvedValue({ _id: "r1" });
-    User.findById = jest.fn().mockResolvedValue({ _id: "u2", rol: "estudiante" });
     Assignment.create = jest.fn().mockResolvedValue({
-      _id: "a1", readingId: "r1", studentId: "u2", status: "assigned"
+      _id: "a1", reading: "r1", student: "u2", status: "assigned"
     });
 
-    const { req, res } = fakeReqRes({ readingId: "r1", studentId: "u2", dueDate: "2025-12-01" });
+    const { req, res } = fakeReqRes({ readingId: "r1", studentId: "u2", dueDate: "2025-12-01T00:00:00.000Z" });
     req.user = { id: "u1", rol: "docente" };
     const next = jest.fn();
 

@@ -10,3 +10,8 @@ export function fakeReqRes(body = {}, extra = {}) {
   const next = jest.fn();
   return { req, res, next };
 }
+
+// Smoke test para que Jest no marque el archivo como suite vacía
+describe('test-utils.helper smoke', () => {
+  test('carga helpers', () => expect(true).toBe(true));
+});

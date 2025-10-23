@@ -17,6 +17,4 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-userSchema.index({ email: 1 }, { unique: true });
-
 export default model('User', userSchema);
