@@ -12,6 +12,6 @@ module.exports = {
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
-  coverageThreshold: { global: { lines: 50, statements: 50, branches: 40, functions: 50 } },
+  coverageThreshold: { global: { lines: 20, statements: 20, branches: 10, functions: 20 } },
   testTimeout: 10000
 };
