@@ -10,27 +10,27 @@ module.exports = {
 
   transform: { "^.+\\.(js|jsx|ts|tsx)$": "babel-jest" },
 
-  // importa ESMs de react-router correctamente
+
   transformIgnorePatterns: [
     "/node_modules/(?!(react-router|@remix-run/router)/)"
   ],
 
-  // hace que Jest elija los builds correctos vía package.json "exports"
+
   testEnvironmentOptions: {
     customExportConditions: ["browser", "development"]
   },
 
   moduleNameMapper: {
     "\\.(css|scss|sass|less)$": "identity-obj-proxy",
-    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@/(.*)$": "<rootDir>/src/frontend/$1",
     "^~tests/(.*)$": "<rootDir>/tests/$1",
     "\\.(jpg|jpeg|png|gif|svg|webp|avif)$": "<rootDir>/tests/mocks/fileMock.js",
-    "^react-bootstrap$": "<rootDir>/tests/mocks/react-bootstrap.js"
+    "^react-bootstrap$": "<rootDir>/tests/mocks/react-bootstrap.js",
   },
 
   roots: ["<rootDir>"],
 
-  // cobertura real y consistente
+
   collectCoverage: true,
   collectCoverageFrom: [
     "src/**/*.{js,jsx,ts,tsx}",

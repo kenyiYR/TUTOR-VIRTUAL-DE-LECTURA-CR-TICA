@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import Navbar from "../Navbar.jsx";
 
 // === AuthContext (MISMA RUTA QUE EN Navbar.jsx) ===
-jest.mock("../context/AuthContext", () => ({
+jest.mock("../../context/AuthContext", () => ({
   useAuth: () => ({
     user: { email: "doc@x.com", rol: "docente" },
     getUser: () => ({ email: "doc@x.com", rol: "docente" }),
