@@ -8,6 +8,8 @@ jest.mock("../../context/AuthContext", () => ({
   })
 }));
 
+jest.mock("../context/AuthContext", () => require("~tests/mocks/auth-context.mock.js"));
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";

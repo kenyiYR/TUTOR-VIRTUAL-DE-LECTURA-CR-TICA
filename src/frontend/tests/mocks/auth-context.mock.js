@@ -1,4 +1,9 @@
-export const useAuth = () => ({
-  user: { email: "test@uc.edu", rol: "docente" }, // ajusta según el caso
-  setUser: jest.fn()
-});
+module.exports = {
+  useAuth: () => ({
+    user: { email: "doc@x.com", rol: "docente" },
+    getUser: () => ({ email: "doc@x.com", rol: "docente" }),
+    getUserRole: () => "docente",
+    clearToken: jest.fn(),
+    logoutClient: jest.fn(),
+  }),
+};
