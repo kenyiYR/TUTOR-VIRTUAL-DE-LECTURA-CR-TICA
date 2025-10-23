@@ -1,4 +1,7 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const BASE =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ||
+  process.env.VITE_API_URL ||
+  "http://localhost:4000";
 
 export const tokenKey = 'tvlc_token';
 export const userKey  = 'tvlc_user';
