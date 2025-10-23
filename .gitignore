@@ -45,3 +45,7 @@ Thumbs.db
 # ----- Docker overrides locales -----
 docker-compose.override.yml
 .env.docker
+
+node_modules/
+coverage/
+.jest-cache/

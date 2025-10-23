@@ -5,9 +5,9 @@
   "main": "jest.setup.js",
   "scripts": {
     "test": "jest",
-    "coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "coverage:strict": "jest --coverage --coverageThreshold='{\"global\":{\"lines\":50,\"statements\":50,\"branches\":40,\"functions\":50}}'"
+    "coverage": "jest --coverage",
+    "coverage:strict": "jest --coverage --coverageThreshold='{\"lines\":50,\"statements\":50,\"branches\":40,\"functions\":50}'"
   },
   "keywords": [],
   "author": "",

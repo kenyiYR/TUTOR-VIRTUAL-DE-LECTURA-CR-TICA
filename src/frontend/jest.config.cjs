@@ -1,16 +1,43 @@
+// jest.config.cjs
 module.exports = {
   testEnvironment: "jsdom",
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-  transform: { "^.+\\.[tj]sx?$": "babel-jest" },
-  moduleNameMapper: {
-    "\\.(css|less|sass|scss)$": "identity-obj-proxy",
-    "^@/(.*)$": "<rootDir>/src/$1"
+  rootDir: ".",
+
+  setupFilesAfterEnv: [
+    "<rootDir>/jest.setup.js",
+    "<rootDir>/tests/setup/jest.setup.extra.js"
+  ],
+
+  transform: { "^.+\\.(js|jsx|ts|tsx)$": "babel-jest" },
+
+  // importa ESMs de react-router correctamente
+  transformIgnorePatterns: [
+    "/node_modules/(?!(react-router|@remix-run/router)/)"
+  ],
+
+  // hace que Jest elija los builds correctos vía package.json "exports"
+  testEnvironmentOptions: {
+    customExportConditions: ["browser", "development"]
   },
+
+  moduleNameMapper: {
+    "\\.(css|scss|sass|less)$": "identity-obj-proxy",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^~tests/(.*)$": "<rootDir>/tests/$1",
+    "\\.(jpg|jpeg|png|gif|svg|webp|avif)$": "<rootDir>/tests/mocks/fileMock.js"
+  },
+
   roots: ["<rootDir>"],
+
+  // cobertura real y consistente
+  collectCoverage: true,
   collectCoverageFrom: [
-    "src/**/*.{js,jsx}",
+    "src/**/*.{js,jsx,ts,tsx}",
     "!src/main.jsx",
-    "!src/**/index.jsx"
+    "!src/**/index.jsx",
+    "!**/__tests__/**",
+    "!**/*.test.*",
+    "!**/*.spec.*"
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],

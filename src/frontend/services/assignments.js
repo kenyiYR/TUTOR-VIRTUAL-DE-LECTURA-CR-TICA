@@ -1,5 +1,8 @@
 import { getToken } from './auth.js';
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const BASE =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ||
+  process.env.VITE_API_URL ||
+  "http://localhost:4000";
 const H = (t)=>({ 'Content-Type':'application/json', ...(t?{Authorization:`Bearer ${t}`}:{}) });
 
 export async function assignReading({ readingId, studentIds, dueDate }){
