@@ -1,4 +1,3 @@
-// jest.config.cjs
 module.exports = {
   testEnvironment: "jsdom",
   rootDir: ".",
@@ -10,26 +9,27 @@ module.exports = {
 
   transform: { "^.+\\.(js|jsx|ts|tsx)$": "babel-jest" },
 
-
   transformIgnorePatterns: [
     "/node_modules/(?!(react-router|@remix-run/router)/)"
   ],
-
 
   testEnvironmentOptions: {
     customExportConditions: ["browser", "development"]
   },
 
+
   moduleNameMapper: {
     "\\.(css|scss|sass|less)$": "identity-obj-proxy",
-    "^@/(.*)$": "<rootDir>/src/frontend/$1",
+    "^@/(.*)$": "<rootDir>/../src/$1",                   // <- antes apuntaba mal
     "^~tests/(.*)$": "<rootDir>/tests/$1",
     "\\.(jpg|jpeg|png|gif|svg|webp|avif)$": "<rootDir>/tests/mocks/fileMock.js",
-    "^react-bootstrap$": "<rootDir>/tests/mocks/react-bootstrap.js",
+    "^react-bootstrap$": "<rootDir>/tests/mocks/react-bootstrap.js"
   },
 
-  roots: ["<rootDir>"],
+ 
+  moduleDirectories: ["node_modules", "<rootDir>", "<rootDir>/src", "<rootDir>/../src"],
 
+  roots: ["<rootDir>"],
 
   collectCoverage: true,
   collectCoverageFrom: [
