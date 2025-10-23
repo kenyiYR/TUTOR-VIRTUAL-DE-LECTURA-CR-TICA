@@ -1,4 +1,13 @@
-// src/components/__tests__/Navbar.test.jsx
+jest.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({
+    user: { email: "doc@x.com", rol: "docente" },
+    getUser: () => ({ email: "doc@x.com", rol: "docente" }),
+    getUserRole: () => "docente",
+    clearToken: jest.fn(),
+    logoutClient: jest.fn()
+  })
+}));
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
