@@ -1,27 +1,27 @@
+// Mock minimal pero completo para los subcomponentes que usa tu Navbar.
 const React = require("react");
 
-const make = (name) =>
-  React.forwardRef((props, ref) =>
-    React.createElement(
-      "div",
-      { "data-mock": `rb-${name}`, ref, ...props },
-      props.children
-    )
-  );
+function mk(name) {
+  const Comp = React.forwardRef(({ as: As = "div", children, ...props }, ref) => {
+    // Si piden "as={Link}", respetamos ese componente para que no explote el Link
+    if (As && As !== "div" && typeof As === "function") {
+      return React.createElement(As, { ref, ...props }, children);
+    }
+    return React.createElement("div", { ref, "data-mock": name, ...props }, children);
+  });
+  Comp.displayName = name;
+  return Comp;
+}
 
-// Si en tu código usas subcomponentes, los cuelgo aquí:
-const Nav = make("Nav");
-Nav.Item = make("Nav.Item");
-Nav.Link = make("Nav.Link");
+const Navbar = mk("Navbar");
+Navbar.Brand = mk("Navbar.Brand");
+Navbar.Toggle = mk("Navbar.Toggle");
+Navbar.Collapse = mk("Navbar.Collapse");
 
-const NavDropdown = make("NavDropdown");
-NavDropdown.Item = make("NavDropdown.Item");
+const Nav = mk("Nav");
+Nav.Link = mk("Nav.Link");
 
-module.exports = {
-  __esModule: true,
-  Navbar: make("Navbar"),
-  Nav,
-  Container: make("Container"),
-  Button: make("Button"),
-  NavDropdown
-};
+const Container = mk("Container");
+const Button = mk("Button");
+
+module.exports = { __esModule: true, Navbar, Nav, Container, Button };
