@@ -20,7 +20,7 @@ module.exports = {
 
   moduleNameMapper: {
     "\\.(css|scss|sass|less)$": "identity-obj-proxy",
-    "^@/(.*)$": "<rootDir>/../src/$1",                   // <- antes apuntaba mal
+    "^@/(.*)$": "<rootDir>/../$1",
     "^~tests/(.*)$": "<rootDir>/tests/$1",
     "\\.(jpg|jpeg|png|gif|svg|webp|avif)$": "<rootDir>/tests/mocks/fileMock.js",
     "^react-bootstrap$": "<rootDir>/tests/mocks/react-bootstrap.js"
