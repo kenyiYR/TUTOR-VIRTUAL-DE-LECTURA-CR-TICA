@@ -1,4 +1,3 @@
-// src/__tests__/controllers/auth.login.test.js
 jest.mock("../../models/User.js");
 jest.mock("bcryptjs", () => ({
   compare: jest.fn().mockResolvedValue(true),
@@ -50,13 +49,17 @@ describe("AuthController.login", () => {
       passwordHash: "hash",
       toJSON() { return { _id: "u1", email: "ana@example.com", rol: "docente" }; },
     });
+
+    // Por defecto compare => true; hay que forzarlo a false para este caso
     bcrypt.compare.mockResolvedValue(false);
 
-    const { req, res } = fakeReqRes({ email: "ana@example.com", password: "xxx" });
+    // Password >=6 para no disparar Zod y poder llegar al 401
+    const { req, res } = fakeReqRes({ email: "ana@example.com", password: "incorrecta" });
     const next = jest.fn();
 
     await login(req, res, next);
 
+    expect(User.findOne).toHaveBeenCalledWith({ email: "ana@example.com" });
     expect(res.statusCode).toBe(401);
     expect(res.data.ok).toBe(false);
     expect(next).not.toHaveBeenCalled();
@@ -65,7 +68,7 @@ describe("AuthController.login", () => {
   test("usuario no existe => 404", async () => {
     User.findOne = jest.fn().mockResolvedValue(null);
 
-    const { req, res } = fakeReqRes({ email: "no@no.com", password: "whatever" });
+    const { req, res } = fakeReqRes({ email: "no@no.com", password: "alguno123" });
     const next = jest.fn();
 
     await login(req, res, next);
