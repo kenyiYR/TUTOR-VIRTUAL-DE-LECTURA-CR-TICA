@@ -4,6 +4,10 @@ import crypto from 'node:crypto';
 import Assignment from '../models/Assignment.js';
 import Reading from '../models/Reading.js';
 import { uploadBuffer, publicUrl } from '../lib/storage.service.js';
+import { generateReadingQuestions } from "../lib/ai.service.js";
+import { getReadingText } from "../lib/reading-text.service.js";
+
+const IS_TEST_ENV = process.env.NODE_ENV === "test";
 
 export const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
@@ -29,17 +33,32 @@ export async function assignReading(req, res, next) {
     }
 
     const reading = await Reading.findById(readingId);
-    if (!reading) return res.status(404).json({ ok: false, error: 'Lectura no encontrada' });
+    if (!reading) {
+      return res.status(404).json({ ok: false, error: 'Lectura no encontrada' });
+    }
 
     // Caso 1 alumno: crea y devuelve 201 + assignment (con status)
     if (studentIds.length === 1) {
       const created = await Assignment.create({
-        reading: reading._id,
-        student: studentIds[0],
+        reading:    reading._id,
+        student:    studentIds[0],
         assignedBy: req.user.id ?? req.userId,
         dueDate,
-        status: 'assigned'
+        status:     'assigned',   // status global de la asignación
+        // questions: se llena con el default "pending" del schema
       });
+
+      // IA en background (no en entorno de test)
+      if (!IS_TEST_ENV) {
+        // No esperamos el resultado para responder al docente
+        generateQuestionsForAssignments({
+          reading,
+          assignments: [created]
+        }).catch((err) => {
+          console.error("[AssignmentsController] Error background IA (1 alumno):", err?.message || err);
+        });
+      }
+
       return res.status(201).json({ ok: true, assignment: created });
     }
 
@@ -49,11 +68,11 @@ export async function assignReading(req, res, next) {
         filter: { reading: reading._id, student },
         update: {
           $setOnInsert: {
-            reading: reading._id,
+            reading:    reading._id,
             student,
             assignedBy: req.user.id ?? req.userId,
             dueDate,
-            status: 'assigned'
+            status:     'assigned'
           }
         },
         upsert: true
@@ -61,11 +80,29 @@ export async function assignReading(req, res, next) {
     }));
 
     const result = await Assignment.bulkWrite(ops, { ordered: false });
+
+    // IA en background para todos los alumnos afectados (no en test)
+    if (!IS_TEST_ENV) {
+      // Recuperamos las asignaciones para esos alumnos y esa lectura
+      // para luego actualizar su bloque `questions`.
+      Assignment.find({
+        reading: reading._id,
+        student: { $in: studentIds }
+      })
+        .then(assignments => {
+          if (!assignments || assignments.length === 0) return;
+          return generateQuestionsForAssignments({ reading, assignments });
+        })
+        .catch(err => {
+          console.error("[AssignmentsController] Error background IA (batch):", err?.message || err);
+        });
+    }
+
     return res.status(201).json({
       ok: true,
       stats: {
         upserted: result.upsertedCount,
-        matched: result.matchedCount,
+        matched:  result.matchedCount,
         modified: result.modifiedCount
       }
     });
@@ -73,6 +110,7 @@ export async function assignReading(req, res, next) {
     next(e);
   }
 }
+
 
 export async function listMyAssignmentsStudent(req, res, next) {
   try {
@@ -165,4 +203,51 @@ export async function listTeacherBoard(req, res, next) {
 
     res.json({ ok:true, items: docs });
   } catch (e) { next(e); }
+}
+
+/**
+ * Genera preguntas con IA para una o varias asignaciones de la misma lectura
+ * y las guarda en cada documento.
+ *
+ * - NO lanza errores hacia arriba, loguea y marca status "failed".
+ * - Llama a getReadingText (por ahora stub) y luego a generateReadingQuestions.
+ *
+ * @param {Object} params
+ * @param {import("../models/Reading.js").default | any} params.reading
+ * @param {import("../models/Assignment.js").default[] | any[]} params.assignments
+ */
+async function generateQuestionsForAssignments({ reading, assignments }) {
+  if (!assignments || assignments.length === 0) return;
+
+  try {
+    const text = await getReadingText(reading);
+
+    const questionsByLevel = await generateReadingQuestions({
+      text,
+      title: reading.titulo
+    });
+
+    // Actualizamos cada assignment con las mismas preguntas (la lectura es la misma)
+    for (const assignment of assignments) {
+      assignment.questions = {
+        status: "ready",
+        literal: questionsByLevel.literal,
+        inferential: questionsByLevel.inferential,
+        critical: questionsByLevel.critical
+      };
+      await assignment.save();
+    }
+  } catch (err) {
+    console.error("[AssignmentsController] Error generando preguntas IA:", err?.message || err);
+
+    // Si algo falla, marcamos cada una como failed
+    for (const assignment of assignments) {
+      assignment.questions = {
+        ...(assignment.questions || {}),
+        status: "failed",
+        error: err?.message || "Error generando preguntas con IA"
+      };
+      await assignment.save();
+    }
+  }
 }
