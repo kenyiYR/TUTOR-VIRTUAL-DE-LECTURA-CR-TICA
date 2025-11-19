@@ -12,6 +12,8 @@ import teacherRouter from './routes/teacher.routes.js';
 import readingRouter from './routes/reading.routes.js';
 import assignmentRouter from './routes/assignment.routes.js';
 
+import aiRoutes from "./routes/ai.routes.js";
+
 const app = express();
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -45,6 +47,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/teacher', teacherRouter);
 app.use('/api/readings', readingRouter);
 app.use('/api/assignments', assignmentRouter);
+app.use("/api/ai", aiRoutes);
 
 // 404
 app.use((req, res) => {
