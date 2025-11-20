@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { listMyAssignments, toggleRead, submitWork } from '../../services/assignments.js';
+import {
+  listMyAssignments,
+  toggleRead,
+  submitWork,
+  answerQuestion
+} from '../../services/assignments.js';
 import '../../styles/panel.css';
 
-// ----- Componentes auxiliares IA -----
+// ----- Helpers IA -----
 
 function IAStatus({ questions }) {
   const status = questions?.status;
@@ -36,8 +41,20 @@ function IAStatus({ questions }) {
   return null;
 }
 
-function QuestionLevelBlock({ title, questions }) {
+function QuestionLevelBlock({
+  title,
+  level,
+  questions,
+  assignment,
+  assignmentIndex,
+  answerDrafts,
+  onChangeDraft,
+  onSendAnswer,
+  answerLoadingKey
+}) {
   if (!questions || questions.length === 0) return null;
+
+  const answers = Array.isArray(assignment.answers) ? assignment.answers : [];
 
   return (
     <div className="ia-questions-level" style={{ marginTop: 8 }}>
@@ -45,34 +62,113 @@ function QuestionLevelBlock({ title, questions }) {
         {title}
       </h4>
       <ol className="ia-questions-list" style={{ margin: 0, paddingLeft: '1.25rem' }}>
-        {questions.map((q, idx) => (
-          <li
-            key={q.id || `${title}-${idx}`}
-            className="ia-question-item"
-            style={{ marginBottom: 4 }}
-          >
-            <p className="ia-question-prompt" style={{ margin: 0 }}>
-              {q.prompt}
-            </p>
-            {/* Si quisieras mostrar la respuesta esperada para el alumno, descomenta esto */}
-            {/* {q.expectedAnswer && (
-              <small className="ia-question-expected" style={{ display: 'block', opacity: 0.7 }}>
-                Respuesta esperada (referencia): {q.expectedAnswer}
-              </small>
-            )} */}
-          </li>
-        ))}
+        {questions.map((q, idx) => {
+          // Usamos id "propio" si existe; si no, el _id que viene de Mongo
+const qId = q.id || q._id;
+
+const key = `${assignment._id}::${qId || `${level}-${idx}`}`;
+
+const existing = answers.find(
+  (ans) => ans.questionId === (qId || `${level}-${idx}`)
+);
+
+const currentDraft =
+  answerDrafts[key] ?? (existing?.answer ? existing.answer : '');
+
+
+          const loading = answerLoadingKey === key;
+
+          return (
+            <li
+              key={q.id || `${title}-${idx}`}
+              className="ia-question-item"
+              style={{ marginBottom: 10 }}
+            >
+              {/* Pregunta */}
+              <p className="ia-question-prompt" style={{ margin: '0 0 4px' }}>
+                {q.prompt}
+              </p>
+
+              {/* Respuesta anterior + feedback (si existe) */}
+              {existing && (
+                <div
+                  className="ia-answer-feedback"
+                  style={{
+                    marginBottom: 6,
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    background: 'rgba(255,255,255,0.04)'
+                  }}
+                >
+                  <p style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+                    <b>Tu respuesta:</b> {existing.answer}
+                  </p>
+                  <p style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+                    <b>Retroalimentación IA:</b> {existing.feedbackText || '—'}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>
+                    Puntaje: {existing.score ?? '—'} · Veredicto:{' '}
+                    {existing.verdict || '—'}
+                  </p>
+                </div>
+              )}
+
+              {/* Campo para nueva respuesta / actualización */}
+              <div className="ia-answer-input" style={{ marginTop: 4 }}>
+                <textarea
+                  rows={3}
+                  className="input"
+                  style={{ width: '100%', resize: 'vertical' }}
+                  placeholder={
+                    existing
+                      ? 'Puedes mejorar o actualizar tu respuesta...'
+                      : 'Escribe aquí tu respuesta a esta pregunta...'
+                  }
+                  value={currentDraft}
+                  onChange={(e) => onChangeDraft(key, e.target.value)}
+                />
+                <div style={{ marginTop: 4, textAlign: 'right' }}>
+                  <button
+                    className="btn"
+                    disabled={loading}
+                    onClick={() =>
+                      onSendAnswer({
+                        assignmentId: assignment._id,
+                        assignmentIndex,
+                        question: q,
+                        storageKey: key
+                      })
+                    }
+                  >
+                    {loading
+                      ? 'Enviando...'
+                      : existing
+                      ? 'Actualizar respuesta'
+                      : 'Enviar respuesta'}
+                  </button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
 }
 
-function IAQuestionsBlock({ questions }) {
+function IAQuestionsBlock({
+  assignment,
+  assignmentIndex,
+  answerDrafts,
+  onChangeDraft,
+  onSendAnswer,
+  answerLoadingKey
+}) {
+  const questions = assignment.questions;
   if (!questions || questions.status !== 'ready') return null;
 
   const { literal = [], inferential = [], critical = [] } = questions;
 
-  // Si por alguna razón no hay nada en ningún nivel, no mostramos el bloque
   if (
     (!literal || literal.length === 0) &&
     (!inferential || inferential.length === 0) &&
@@ -88,7 +184,7 @@ function IAQuestionsBlock({ questions }) {
         marginTop: 12,
         padding: '8px 10px',
         borderRadius: 8,
-        background: 'rgba(255,255,255,0.03)',
+        background: 'rgba(255,255,255,0.03)'
       }}
     >
       <h3
@@ -98,9 +194,41 @@ function IAQuestionsBlock({ questions }) {
         Preguntas generadas por IA
       </h3>
 
-      <QuestionLevelBlock title="Nivel literal" questions={literal} />
-      <QuestionLevelBlock title="Nivel inferencial" questions={inferential} />
-      <QuestionLevelBlock title="Nivel crítico" questions={critical} />
+      <QuestionLevelBlock
+        title="Nivel literal"
+        level="literal"
+        questions={literal}
+        assignment={assignment}
+        assignmentIndex={assignmentIndex}
+        answerDrafts={answerDrafts}
+        onChangeDraft={onChangeDraft}
+        onSendAnswer={onSendAnswer}
+        answerLoadingKey={answerLoadingKey}
+      />
+
+      <QuestionLevelBlock
+        title="Nivel inferencial"
+        level="inferential"
+        questions={inferential}
+        assignment={assignment}
+        assignmentIndex={assignmentIndex}
+        answerDrafts={answerDrafts}
+        onChangeDraft={onChangeDraft}
+        onSendAnswer={onSendAnswer}
+        answerLoadingKey={answerLoadingKey}
+      />
+
+      <QuestionLevelBlock
+        title="Nivel crítico (sesgos y falacias)"
+        level="critical"
+        questions={critical}
+        assignment={assignment}
+        assignmentIndex={assignmentIndex}
+        answerDrafts={answerDrafts}
+        onChangeDraft={onChangeDraft}
+        onSendAnswer={onSendAnswer}
+        answerLoadingKey={answerLoadingKey}
+      />
     </div>
   );
 }
@@ -111,6 +239,8 @@ export default function AsignacionesAlumno() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
+  const [answerDrafts, setAnswerDrafts] = useState({});
+  const [answerLoadingKey, setAnswerLoadingKey] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -160,6 +290,62 @@ export default function AsignacionesAlumno() {
       input.value = '';
     } catch (e) {
       setMsg(e.message);
+    }
+  }
+
+  function handleDraftChange(key, value) {
+    setAnswerDrafts((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  }
+
+  async function handleSendAnswer({ assignmentId, assignmentIndex, question, storageKey }) {
+    const draft = (answerDrafts[storageKey] || '').trim();
+    if (!draft) {
+      setMsg('Escribe una respuesta antes de enviarla.');
+      return;
+    }
+
+    try {
+      setAnswerLoadingKey(storageKey);
+      const qId = question.id || question._id;
+if (!qId) {
+  setMsg('No se pudo identificar la pregunta. Actualiza la página e inténtalo de nuevo.');
+  return;
+}
+
+const saved = await answerQuestion(assignmentId, {
+  questionId: qId,
+  answer: draft
+});
+
+
+      setItems((prev) => {
+        const next = [...prev];
+        const a = { ...next[assignmentIndex] };
+        const answers = Array.isArray(a.answers) ? [...a.answers] : [];
+        const idx = answers.findIndex((ans) => ans.questionId === saved.questionId);
+        if (idx >= 0) {
+          answers[idx] = saved;
+        } else {
+          answers.push(saved);
+        }
+        a.answers = answers;
+        next[assignmentIndex] = a;
+        return next;
+      });
+
+      setAnswerDrafts((prev) => ({
+        ...prev,
+        [storageKey]: ''
+      }));
+
+      setMsg('Respuesta enviada y evaluada ✅');
+    } catch (e) {
+      setMsg(e.message || 'Error al enviar respuesta');
+    } finally {
+      setAnswerLoadingKey(null);
     }
   }
 
@@ -223,8 +409,15 @@ export default function AsignacionesAlumno() {
                 </p>
               )}
 
-              {/* Bloque de preguntas por nivel (solo si status === "ready") */}
-              <IAQuestionsBlock questions={a.questions} />
+              {/* Bloque de preguntas + respuestas + feedback IA */}
+              <IAQuestionsBlock
+                assignment={a}
+                assignmentIndex={i}
+                answerDrafts={answerDrafts}
+                onChangeDraft={handleDraftChange}
+                onSendAnswer={handleSendAnswer}
+                answerLoadingKey={answerLoadingKey}
+              />
             </div>
           ))
         )}

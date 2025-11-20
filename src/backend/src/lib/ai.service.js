@@ -79,7 +79,7 @@ function buildQuestionId(level, index) {
  */
 function buildMockQuestions({ text, title = "Lectura", config = DEFAULT_CONFIG }) {
   const safeTitle = title || "Lectura";
-  const safeSnippet = (text || "").slice(0, 160).replace(/\s+/g, " ").trim();
+  const safeSnippet = (text || "").slice(0, 220).replace(/\s+/g, " ").trim();
 
   const makeQuestions = (level, count, templateFn) => {
     return Array.from({ length: count }, (_, i) => ({
@@ -101,17 +101,69 @@ function buildMockQuestions({ text, title = "Lectura", config = DEFAULT_CONFIG }
     inferential: makeQuestions("inferential", config.inferential, (i) =>
       `A partir de la información del texto "${safeTitle}"${
         safeSnippet ? ` (por ejemplo: "${safeSnippet}...")` : ""
-      }, explica una idea o conclusión que no está dicha literalmente, pero que se puede deducir. (Pregunta inferencial ${
+      }, explica una idea o conclusión que no está dicha literalmente, pero que se puede deducir. Si es posible, señala también qué supuestos del autor permiten esa inferencia. (Pregunta inferencial ${
         i + 1
       })`
     ),
-    critical: makeQuestions("critical", config.critical, (i) =>
-      `Tomando como base el texto "${safeTitle}", formula una opinión crítica y argumentada sobre una postura, decisión o consecuencia presente en el contenido. Considera coherencia, impacto y posibles alternativas. (Pregunta crítica ${
+    critical: makeQuestions("critical", config.critical, (i) => {
+      // Mezclamos preguntas críticas "clásicas" y preguntas centradas en sesgos/falacias
+      if (i % 2 === 0) {
+        return `Tomando como base el texto "${safeTitle}", emite una opinión crítica y argumentada sobre una postura o conclusión del autor. Evalúa su coherencia, los argumentos que usa y el posible impacto que podría tener en la realidad. (Pregunta crítica ${
+          i + 1
+        })`;
+      }
+
+      return `Revisa el texto "${safeTitle}"${
+        safeSnippet ? ` (por ejemplo: "${safeSnippet}...")` : ""
+      } e identifica si existe algún posible SESGO (por ejemplo, sesgo de confirmación, generalización apresurada) o alguna FALACIA argumentativa (ad hominem, apelación a la emoción, falsa causa, etc.). Describe el fragmento problemático y justifica por qué podría considerarse un sesgo o falacia, o explica si el argumento te parece sólido. (Pregunta crítica centrada en sesgos/falacias ${
         i + 1
-      })`
-    )
+      })`;
+    })
   };
 }
+
+function buildMockFeedback({ level, questionPrompt, expectedAnswer, studentAnswer, title }) {
+  const trimmed = (studentAnswer || "").trim();
+
+  if (!trimmed) {
+    return {
+      score: 0,
+      verdict: "sin_respuesta",
+      feedback:
+        "No escribiste una respuesta. Intenta responder con tus propias palabras, aunque no estés seguro, para poder darte una retroalimentación útil."
+    };
+  }
+
+  let score = 60;
+  let verdict = "parcial";
+  let extra = "";
+
+  if (trimmed.length < 25) {
+    score = 40;
+    verdict = "muy_breve";
+    extra = "Tu respuesta es muy corta. Intenta desarrollar un poco más tus ideas y justificar por qué piensas eso.";
+  } else if (trimmed.length > 300) {
+    score = 70;
+    verdict = "extensa";
+    extra = "Tu respuesta es detallada, pero podrías organizar mejor tus ideas y centrarte en lo que pide la pregunta.";
+  } else {
+    score = 75;
+    verdict = "aceptable";
+    extra = "Tu respuesta va en la línea correcta. Aún así, podrías precisar mejor tus argumentos y relacionarlos más directamente con el texto.";
+  }
+
+  if (level === "critical") {
+    extra +=
+      " Recuerda que en las preguntas críticas es importante analizar la postura del autor, detectar posibles sesgos o falacias y justificar tu opinión con argumentos claros.";
+  }
+
+  return {
+    score,
+    verdict,
+    feedback: extra
+  };
+}
+
 
 /**
  * Parsea la respuesta de Gemini a nuestra estructura QuestionsByLevel.
@@ -159,32 +211,53 @@ async function callGeminiForQuestions({ text, title, config }) {
   const trimmedText = text.slice(0, 8000); // Para no pasarnos de tokens a lo bestia
 
   const prompt = `
-Eres un tutor experto en comprensión lectora y pensamiento crítico en español.
+Eres un tutor experto en comprensión lectora, pensamiento crítico y argumentación en español.
 
 Recibirás el texto de una lectura y deberás generar preguntas de comprensión en tres niveles:
 1) Literal
 2) Inferencial
 3) Crítico
 
-REQUERIMIENTOS:
+Además, antes de formular las preguntas, realiza internamente un ANÁLISIS de:
+- Posibles SESGOS del autor (cognitivos, ideológicos, de selección de datos, etc.).
+- Posibles FALACIAS argumentativas (ad hominem, falsa causa, generalización apresurada, apelación a la emoción, etc.).
+No devuelvas este análisis como texto separado, pero ÚSALO para diseñar especialmente las preguntas críticas.
 
-- Nivel LITERAL: 
+REQUERIMIENTOS POR NIVEL:
+
+- Nivel LITERAL:
   * Preguntas basadas en información explícita del texto.
   * El estudiante debe poder responder localizando datos directamente en el contenido.
+  * NO pidas opiniones; solo verificación de hechos, personajes, datos, definiciones, etc.
 
 - Nivel INFERENCIAL:
   * Preguntas que exijan deducir o interpretar ideas que no están dichas de forma explícita.
-  * Relacionar partes del texto, leer entre líneas.
+  * Relacionar partes del texto, leer entre líneas, identificar supuestos no declarados.
+  * Puedes incluir alguna pregunta que invite a inferir qué tipo de supuestos o perspectiva tiene el autor (por ejemplo, su visión política, económica, social), sin afirmar nada como verdad absoluta.
 
 - Nivel CRÍTICO:
   * Preguntas que inviten a valorar, argumentar, cuestionar y opinar de forma fundamentada sobre el texto.
-  * Considerar coherencia, intenciones del autor, impacto social, posibles sesgos, etc.
+  * Considerar coherencia, intenciones del autor, impacto social, posibles sesgos, calidad de las fuentes, generalizaciones, etc.
   * DA ESPECIAL ÉNFASIS A ESTE NIVEL (más preguntas críticas que de los otros niveles).
+
+  Dentro del nivel CRÍTICO:
+  * AL MENOS LA MITAD de las preguntas deben centrarse en SESGOS y FALACIAS, por ejemplo:
+    - Identificar un posible sesgo en el modo en que se presenta la información.
+    - Revisar si alguna conclusión se basa en una generalización apresurada.
+    - Detectar si se apela solo a la emoción sin sustento.
+    - Ver si se ataca a la persona y no al argumento (ad hominem), etc.
+  * Si el texto parece razonablemente equilibrado y no encuentras sesgos evidentes, formula preguntas que ayuden a verificar si podría haber sesgos ocultos (por ejemplo, qué datos faltan, qué voces no se escuchan, qué supuestos se dan por hechos).
 
 CANTIDAD DE PREGUNTAS (máximos):
 - Literal: hasta ${config.literal} preguntas.
 - Inferencial: hasta ${config.inferential} preguntas.
 - Crítico: hasta ${config.critical} preguntas.
+
+RESPUESTAS ESPERADAS:
+- En "expectedAnswer", resume la respuesta correcta o razonable de forma breve.
+- En las preguntas críticas sobre sesgos/falacias, si es posible:
+  * Nombra el tipo de sesgo o falacia (por ejemplo: "sesgo de confirmación", "falacia de falsa causa").
+  * Explica brevemente por qué podría considerarse así, o indica que no hay evidencia clara de sesgo si corresponde.
 
 FORMATO DE RESPUESTA (MUY IMPORTANTE):
 Responde ÚNICAMENTE en formato JSON válido, sin texto adicional, con la siguiente estructura:
@@ -239,6 +312,106 @@ TEXTO DE LA LECTURA (puede estar recortado si es muy largo):
   return parseGeminiResponseToQuestions({ json: parsed, config });
 }
 
+async function callGeminiForFeedback({
+  level,
+  questionPrompt,
+  expectedAnswer,
+  studentAnswer,
+  title
+}) {
+  if (!geminiModel) {
+    throw new Error("Gemini no está disponible (modelo no inicializado).");
+  }
+
+  const safeTitle = title || "Lectura";
+  const q = (questionPrompt || "").slice(0, 600);
+  const exp = (expectedAnswer || "").slice(0, 600);
+  const ans = (studentAnswer || "").slice(0, 1000);
+
+  const prompt = `
+Eres un tutor experto en comprensión lectora y pensamiento crítico en español.
+
+Tu tarea es EVALUAR la respuesta de un estudiante a una pregunta sobre un texto.
+
+Debes:
+- Comparar la respuesta del estudiante con la pregunta y, si sirve, con la respuesta esperada de referencia.
+- Valorar comprensión literal, inferencial o crítica según el nivel indicado.
+- Dar retroalimentación HONESTA pero constructiva: señalar aciertos, errores y cómo mejorar.
+- En preguntas críticas, presta especial atención a:
+  - Capacidad de análisis de argumentos.
+  - Identificación (o ausencia) de sesgos y falacias.
+  - Claridad y coherencia del razonamiento.
+
+Niveles:
+- literal: verificar si comprende datos concretos del texto.
+- inferential: verificar si sabe deducir ideas implícitas.
+- critical: verificar si sabe analizar, cuestionar y argumentar sobre el texto (incluyendo sesgos y falacias).
+
+RESPUESTA:
+Devuelve ÚNICAMENTE un JSON con esta estructura:
+
+{
+  "score": 0-100,
+  "verdict": "texto breve que resuma el nivel de logro",
+  "feedback": "retroalimentación en 3-6 frases, específica y orientada a mejorar"
+}
+
+- "score": número entero entre 0 y 100.
+- "verdict": algo como "incorrecto", "parcialmente correcto", "bueno", "muy bueno", etc.
+- "feedback": sin elogios vacíos; señala qué hizo bien, qué falta y cómo mejorar.
+
+NO incluyas comentarios fuera del JSON.
+
+DATOS:
+- Título de la lectura: "${safeTitle}"
+- Nivel de la pregunta: "${level}"
+
+PREGUNTA:
+"${q}"
+
+RESPUESTA ESPERADA (referencia, puede estar vacía):
+"${exp}"
+
+RESPUESTA DEL ESTUDIANTE:
+"${ans}"
+`;
+
+  const result = await geminiModel.generateContent({
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: prompt }]
+      }
+    ]
+  });
+
+  const responseText =
+    result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+  if (!responseText) {
+    throw new Error("Respuesta vacía desde Gemini (feedback).");
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch (err) {
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("No se pudo parsear JSON desde la respuesta de Gemini (feedback).");
+    }
+    parsed = JSON.parse(jsonMatch[0]);
+  }
+
+  const score = Number.isFinite(parsed.score) ? Math.max(0, Math.min(100, parsed.score)) : 0;
+  const verdict = String(parsed.verdict || "").trim() || "sin_veredicto";
+  const feedback = String(parsed.feedback || "").trim() || "Sin feedback generado.";
+
+  return { score, verdict, feedback };
+}
+
+
+
 /**
  * Punto de entrada público del servicio de IA.
  *
@@ -289,3 +462,64 @@ export async function generateReadingQuestions({ text, title, config } = {}) {
     return buildMockQuestions({ text: finalText, title, config: mergedConfig });
   }
 }
+
+/**
+ * Evalúa la respuesta de un estudiante a una pregunta.
+ *
+ * @param {Object} params
+ * @param {string} params.level            Nivel de la pregunta (literal | inferential | critical)
+ * @param {string} params.questionPrompt   Enunciado de la pregunta
+ * @param {string} [params.expectedAnswer] Respuesta esperada de referencia
+ * @param {string} params.studentAnswer    Respuesta del estudiante
+ * @param {string} [params.title]          Título de la lectura (opcional)
+ * @returns {Promise<{score:number, verdict:string, feedback:string}>}
+ */
+export async function evaluateAnswer({
+  level,
+  questionPrompt,
+  expectedAnswer,
+  studentAnswer,
+  title
+}) {
+  const student = (studentAnswer || "").trim();
+  if (!student) {
+    return buildMockFeedback({
+      level,
+      questionPrompt,
+      expectedAnswer,
+      studentAnswer,
+      title
+    });
+  }
+
+  // Si no hay API key, usamos mock directo
+  if (!GEMINI_API_KEY || !geminiModel) {
+    return buildMockFeedback({
+      level,
+      questionPrompt,
+      expectedAnswer,
+      studentAnswer,
+      title
+    });
+  }
+
+  try {
+    return await callGeminiForFeedback({
+      level,
+      questionPrompt,
+      expectedAnswer,
+      studentAnswer,
+      title
+    });
+  } catch (err) {
+    console.error("[AI Service] Error llamando a Gemini para feedback. Usando mock.", err?.message || err);
+    return buildMockFeedback({
+      level,
+      questionPrompt,
+      expectedAnswer,
+      studentAnswer,
+      title
+    });
+  }
+}
+

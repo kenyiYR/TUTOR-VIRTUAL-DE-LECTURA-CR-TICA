@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import Assignment from '../models/Assignment.js';
 import Reading from '../models/Reading.js';
 import { uploadBuffer, publicUrl } from '../lib/storage.service.js';
-import { generateReadingQuestions } from "../lib/ai.service.js";
+import { generateReadingQuestions, evaluateAnswer } from "../lib/ai.service.js";
 import { getReadingText } from "../lib/reading-text.service.js";
 
 const IS_TEST_ENV = process.env.NODE_ENV === "test";
@@ -205,6 +205,87 @@ export async function listTeacherBoard(req, res, next) {
   } catch (e) { next(e); }
 }
 
+const answerSchema = z.object({
+  questionId: z.string().min(1),
+  answer: z.string().min(1, "La respuesta no puede estar vacía")
+});
+
+/**
+ * Permite al estudiante responder una pregunta de la asignación
+ * y obtiene feedback automático de la IA.
+ *
+ * POST /api/assignments/:id/answer
+ */
+export async function answerQuestion(req, res, next) {
+  try {
+    const { id } = req.params;
+    const payload = answerSchema.parse(req.body);
+
+    if (!req.user || req.user.rol !== "estudiante") {
+      return res.status(403).json({ ok: false, error: "Solo estudiantes pueden responder aquí." });
+    }
+
+    const assignment = await Assignment.findById(id).populate("reading", "titulo descripcion");
+    if (!assignment) {
+      return res.status(404).json({ ok: false, error: "Asignación no encontrada." });
+    }
+
+    // Verificar que la asignación pertenece al estudiante autenticado
+    if (assignment.student.toString() !== req.userId) {
+      return res.status(403).json({ ok: false, error: "No puedes responder asignaciones de otro usuario." });
+    }
+
+    // Buscar la pregunta dentro de questions.literal/inferential/critical
+    const q = findQuestionInAssignment(assignment, payload.questionId);
+    if (!q) {
+      return res.status(400).json({ ok: false, error: "Pregunta no encontrada en esta asignación." });
+    }
+
+    const level = q.level || "critical";
+    const questionPrompt = q.prompt;
+    const expectedAnswer = q.expectedAnswer || "";
+
+    // Llamar a la IA para evaluar la respuesta
+    const evalResult = await evaluateAnswer({
+      level,
+      questionPrompt,
+      expectedAnswer,
+      studentAnswer: payload.answer,
+      title: assignment.reading?.titulo
+    });
+
+    const now = new Date();
+    const answers = assignment.answers || [];
+    const idx = answers.findIndex((a) => a.questionId === payload.questionId);
+
+    const newEntry = {
+      questionId: payload.questionId,
+      level,
+      prompt: questionPrompt,
+      answer: payload.answer,
+      feedbackText: evalResult.feedback,
+      score: evalResult.score,
+      verdict: evalResult.verdict,
+      updatedAt: now,
+      createdAt: idx >= 0 ? answers[idx].createdAt : now
+    };
+
+    if (idx >= 0) {
+      answers[idx] = newEntry;
+    } else {
+      answers.push(newEntry);
+    }
+
+    assignment.answers = answers;
+    await assignment.save();
+
+    return res.json({ ok: true, answer: newEntry });
+  } catch (e) {
+    next(e);
+  }
+}
+
+
 /**
  * Genera preguntas con IA para una o varias asignaciones de la misma lectura
  * y las guarda en cada documento.
@@ -251,3 +332,34 @@ async function generateQuestionsForAssignments({ reading, assignments }) {
     }
   }
 }
+
+function findQuestionInAssignment(assignment, questionId) {
+  if (!assignment?.questions) return null;
+
+  const { literal = [], inferential = [], critical = [] } = assignment.questions;
+
+  const groups = [
+    { level: 'literal', arr: literal },
+    { level: 'inferential', arr: inferential },
+    { level: 'critical', arr: critical }
+  ];
+
+  for (const { level, arr } of groups) {
+    for (const q of arr) {
+      // Puede venir de "id" (nuestro), o de "_id" (subdocumento de Mongoose)
+      const candidateId =
+        (q.id && String(q.id)) ||
+        (q._id && q._id.toString());
+
+      if (candidateId && candidateId === questionId) {
+        // Devolvemos un objeto plano con el nivel
+        const plain = q.toObject ? q.toObject() : q;
+        return { ...plain, level };
+      }
+    }
+  }
+
+  return null;
+}
+
+

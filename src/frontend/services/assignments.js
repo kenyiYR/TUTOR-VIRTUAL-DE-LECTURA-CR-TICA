@@ -53,3 +53,19 @@ export async function sendFeedback(id, { text, score }){
   const d = await r.json(); if (!r.ok) throw new Error(d.error||'No se pudo enviar feedback');
   return d.feedback;
 }
+
+export async function answerQuestion(assignmentId, { questionId, answer }) {
+  const r = await fetch(`${BASE}/api/assignments/${assignmentId}/answer`, {
+    method: 'POST',
+    headers: H(getToken()),   // <-- AQUÍ va el Bearer token
+    body: JSON.stringify({ questionId, answer })
+  });
+
+  const d = await r.json();
+  if (!r.ok || !d.ok) {
+    throw new Error(d.error || 'No se pudo enviar la respuesta.');
+  }
+
+  // d.answer = objeto con feedback que devuelve el backend
+  return d.answer;
+}
