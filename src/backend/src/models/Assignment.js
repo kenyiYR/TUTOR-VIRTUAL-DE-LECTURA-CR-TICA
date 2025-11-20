@@ -10,6 +10,23 @@ const questionSubschema = new Schema(
   { _id: false } // no queremos _id extra por cada pregunta
 );
 
+const answerSubschema = new Schema(
+  {
+    questionId:   { type: String, required: true }, // ej: "literal-1"
+    level:        { type: String },                 // literal | inferential | critical
+    prompt:       { type: String },                 // snapshot de la pregunta
+    answer:       { type: String, required: true }, // lo que escribió el alumno
+
+    feedbackText: { type: String },                 // texto de retroalimentación
+    score:        { type: Number },                 // 0-100
+    verdict:      { type: String },                 // "excelente", "parcial", etc.
+
+    createdAt:    { type: Date, default: Date.now },
+    updatedAt:    { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
+
 const assignmentSchema = new Schema({
   reading:     { type: Schema.Types.ObjectId, ref: 'Reading', required: true },
   student:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -43,6 +60,11 @@ const assignmentSchema = new Schema({
     inferential:  { type: [questionSubschema], default: [] },
     critical:     { type: [questionSubschema], default: [] },
     error:        { type: String } // mensaje corto de error si falla la IA
+  },
+
+  answers: {
+    type: [answerSubschema],
+    default: []
   },
 
 }, { timestamps: true, versionKey: false });

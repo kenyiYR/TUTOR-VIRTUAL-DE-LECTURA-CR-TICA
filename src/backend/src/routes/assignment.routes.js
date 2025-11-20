@@ -3,7 +3,7 @@ import { authRequired } from '../middlewares/auth.js';
 import { requireRole } from '../middlewares/roles.js';
 import {
   upload, assignReading, listMyAssignmentsStudent, toggleRead,
-  submitWork, sendFeedback, listTeacherBoard
+  submitWork, sendFeedback, listTeacherBoard, answerQuestion
 } from '../controllers/assignment.controller.js';
 
 const r = Router();
@@ -17,5 +17,7 @@ r.post('/:id/feedback', authRequired, requireRole('docente'), sendFeedback);
 r.get('/my', authRequired, listMyAssignmentsStudent);
 r.patch('/:id/read', authRequired, toggleRead);
 r.post('/:id/submit', authRequired, upload.single('file'), submitWork);
+
+r.post('/:id/answer', authRequired, answerQuestion);
 
 export default r;
