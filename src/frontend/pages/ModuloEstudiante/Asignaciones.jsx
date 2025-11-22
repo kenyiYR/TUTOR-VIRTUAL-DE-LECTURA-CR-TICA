@@ -169,69 +169,104 @@ function IAQuestionsBlock({
 
   const { literal = [], inferential = [], critical = [] } = questions;
 
-  if (
-    (!literal || literal.length === 0) &&
-    (!inferential || inferential.length === 0) &&
-    (!critical || critical.length === 0)
-  ) {
-    return null;
-  }
+  const totalLiteral = literal?.length || 0;
+  const totalInferential = inferential?.length || 0;
+  const totalCritical = critical?.length || 0;
+  const total = totalLiteral + totalInferential + totalCritical;
+
+  if (!total) return null;
+
+  // cuántas ya tienen respuesta guardada
+  const answeredCount = Array.isArray(assignment.answers)
+    ? assignment.answers.length
+    : 0;
+  const pendingCount = Math.max(total - answeredCount, 0);
+
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div
-      className="ia-questions-block"
-      style={{
-        marginTop: 12,
-        padding: '8px 10px',
-        borderRadius: 8,
-        background: 'rgba(255,255,255,0.03)'
-      }}
+      className={`ia-questions-block ${expanded ? 'is-open' : 'is-collapsed'}`}
     >
-      <h3
-        className="ia-questions-title"
-        style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 600 }}
-      >
-        Preguntas generadas por IA
-      </h3>
+      {/* Cabecera compacta */}
+      <div className="ia-questions-header-row">
+        <div className="ia-questions-header-text">
+          <p className="ia-questions-title">Preguntas generadas por IA</p>
+          <p className="ia-questions-summary">
+            {total} pregunta{total !== 1 && 's'} en distintos niveles.{' '}
+            {pendingCount > 0
+              ? `${pendingCount} pendiente${
+                  pendingCount !== 1 ? 's' : ''
+                } por responder.`
+              : 'Todo respondido por ahora.'}
+          </p>
+        </div>
 
-      <QuestionLevelBlock
-        title="Nivel literal"
-        level="literal"
-        questions={literal}
-        assignment={assignment}
-        assignmentIndex={assignmentIndex}
-        answerDrafts={answerDrafts}
-        onChangeDraft={onChangeDraft}
-        onSendAnswer={onSendAnswer}
-        answerLoadingKey={answerLoadingKey}
-      />
+        <div className="ia-questions-chips">
+          {totalLiteral > 0 && (
+            <span className="ia-chip">Literal · {totalLiteral}</span>
+          )}
+          {totalInferential > 0 && (
+            <span className="ia-chip">Inferencial · {totalInferential}</span>
+          )}
+          {totalCritical > 0 && (
+            <span className="ia-chip">Crítico · {totalCritical}</span>
+          )}
+        </div>
 
-      <QuestionLevelBlock
-        title="Nivel inferencial"
-        level="inferential"
-        questions={inferential}
-        assignment={assignment}
-        assignmentIndex={assignmentIndex}
-        answerDrafts={answerDrafts}
-        onChangeDraft={onChangeDraft}
-        onSendAnswer={onSendAnswer}
-        answerLoadingKey={answerLoadingKey}
-      />
+        <button
+          type="button"
+          className="btn-ghost ia-questions-toggle"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? 'Ocultar' : 'Ver preguntas'}
+        </button>
+      </div>
 
-      <QuestionLevelBlock
-        title="Nivel crítico (sesgos y falacias)"
-        level="critical"
-        questions={critical}
-        assignment={assignment}
-        assignmentIndex={assignmentIndex}
-        answerDrafts={answerDrafts}
-        onChangeDraft={onChangeDraft}
-        onSendAnswer={onSendAnswer}
-        answerLoadingKey={answerLoadingKey}
-      />
+      {/* Cuerpo con las preguntas: sólo si el usuario despliega */}
+      {expanded && (
+        <div className="ia-questions-body">
+          <QuestionLevelBlock
+            title="Nivel literal"
+            level="literal"
+            questions={literal}
+            assignment={assignment}
+            assignmentIndex={assignmentIndex}
+            answerDrafts={answerDrafts}
+            onChangeDraft={onChangeDraft}
+            onSendAnswer={onSendAnswer}
+            answerLoadingKey={answerLoadingKey}
+          />
+
+          <QuestionLevelBlock
+            title="Nivel inferencial"
+            level="inferential"
+            questions={inferential}
+            assignment={assignment}
+            assignmentIndex={assignmentIndex}
+            answerDrafts={answerDrafts}
+            onChangeDraft={onChangeDraft}
+            onSendAnswer={onSendAnswer}
+            answerLoadingKey={answerLoadingKey}
+          />
+
+          <QuestionLevelBlock
+            title="Nivel crítico (sesgos y falacias)"
+            level="critical"
+            questions={critical}
+            assignment={assignment}
+            assignmentIndex={assignmentIndex}
+            answerDrafts={answerDrafts}
+            onChangeDraft={onChangeDraft}
+            onSendAnswer={onSendAnswer}
+            answerLoadingKey={answerLoadingKey}
+          />
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ----- Componente principal -----
 
@@ -241,6 +276,8 @@ export default function AsignacionesAlumno() {
   const [msg, setMsg] = useState('');
   const [answerDrafts, setAnswerDrafts] = useState({});
   const [answerLoadingKey, setAnswerLoadingKey] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState({});
+
 
   async function load() {
     setLoading(true);
@@ -349,77 +386,142 @@ const saved = await answerQuestion(assignmentId, {
     }
   }
 
-  return (
-    <div className="panel-wrap">
+    return (
+    <div className="page-wrap student-assignments-page">
+      {/* mensaje global (errores / confirmaciones) */}
       {msg && (
-        <div className="card" style={{ marginBottom: 12 }}>
+        <div className="card student-message">
           {msg}
         </div>
       )}
-      <div className="panel-grid">
+
+      {/* encabezado de la vista */}
+      <header className="student-assignments-header">
+        <h2 className="student-assignments-title">Lecturas asignadas</h2>
+        <p className="student-assignments-subtitle">
+          Revisa tus lecturas, marca el progreso y envía tus respuestas al docente desde un solo lugar.
+        </p>
+      </header>
+
+      <div className="panel-wrap student-assignments-wrap">
         {loading ? (
           <div className="card">Cargando…</div>
         ) : items.length === 0 ? (
           <div className="card">No tienes asignaciones.</div>
         ) : (
-          items.map((a, i) => (
-            <div key={a._id} className="card">
-              <h3>{a.reading?.titulo || 'Lectura'}</h3>
-              <p>{a.reading?.descripcion}</p>
+          <div className="panel-grid student-assignments-grid">
+            {items.map((a, i) => {
+              const title = a.reading?.titulo || 'Lectura';
+              const description = a.reading?.descripcion || '';
+              const shortDesc =
+                description.length > 160
+                  ? description.slice(0, 160) + '…'
+                  : description;
 
-              <div className="row">
-                <a
-                  className="link"
-                  href={a.reading?.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Abrir lectura
-                </a>
-                <span>{statusOf(a)}</span>
-              </div>
+              return (
+                <article key={a._id} className="card student-assignment-card">
+                  <header className="student-assignment-header">
+                    <div>
+                      <h3 className="student-assignment-title">{title}</h3>
+                      {description && (
+                        <p className="student-assignment-desc">{shortDesc}</p>
+                      )}
+                    </div>
+                    <div className="student-assignment-header-meta">
+                      <span className="student-assignment-status">
+                        {statusOf(a)}
+                      </span>
 
-              <div className="row" style={{ marginTop: 8 }}>
-                <button className="btn gray" onClick={() => onToggle(a._id, i)}>
-                  {a.readAt ? 'Marcar como no leído' : 'Marcar como leído'}
-                </button>
-              </div>
+                      {a.reading?.url && (
+                        <a
+                          className="link student-open-link"
+                          href={a.reading.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Abrir lectura
+                        </a>
+                      )}
+                    </div>
+                  </header>
 
-              {/* Estado de la IA para esta asignación */}
-              <IAStatus questions={a.questions} />
+                  <div className="student-assignment-body">
+                    {/* estado de lectura */}
+                    <button
+                      className="btn gray student-read-toggle"
+                      onClick={() => onToggle(a._id, i)}
+                    >
+                      {a.readAt ? 'Marcar como no leído' : 'Marcar como leído'}
+                    </button>
 
-              <div className="hr" />
-              <div className="row">
-                <input id={`file_${a._id}`} className="file" type="file" />
-                <input
-                  id={`note_${a._id}`}
-                  className="input"
-                  placeholder="Notas (opcional)"
-                  style={{ flex: 1 }}
-                />
-                <button className="btn" onClick={() => onSubmit(a._id, i)}>
-                  {a.submission?.at ? 'Reenviar' : 'Enviar tarea'}
-                </button>
-              </div>
+                    {/* estado de la IA para esta lectura */}
+                    <IAStatus questions={a.questions} />
 
-              {a.feedback?.at && (
-                <p style={{ marginTop: 8 }}>
-                  <b>Feedback:</b> {a.feedback.text || '—'} · <b>Puntaje:</b>{' '}
-                  {a.feedback.score ?? '—'}
-                </p>
-              )}
+                    {/* entrega de tarea */}
+                    <div className="student-assignment-submit">
+                      <div className="student-file-input">
+                        <input
+                          id={`file_${a._id}`}
+                          type="file"
+                          className="file-input-hidden"
+                          onChange={(e) =>
+                            setSelectedFiles((prev) => ({
+                              ...prev,
+                              [a._id]: e.target.files?.[0]?.name || ''
+                            }))
+                          }
+                        />
+                        <label
+                          htmlFor={`file_${a._id}`}
+                          className="file-label student-file-label"
+                        >
+                          <span className="file-label-main">
+                            {selectedFiles[a._id]
+                              ? 'Cambiar archivo'
+                              : 'Subir archivo'}
+                          </span>
+                          <span className="file-label-name">
+                            {selectedFiles[a._id] || 'PDF, DOCX o TXT'}
+                          </span>
+                        </label>
+                      </div>
 
-              {/* Bloque de preguntas + respuestas + feedback IA */}
-              <IAQuestionsBlock
-                assignment={a}
-                assignmentIndex={i}
-                answerDrafts={answerDrafts}
-                onChangeDraft={handleDraftChange}
-                onSendAnswer={handleSendAnswer}
-                answerLoadingKey={answerLoadingKey}
-              />
-            </div>
-          ))
+                      <input
+                        id={`note_${a._id}`}
+                        className="input student-note-input"
+                        placeholder="Notas para el docente (opcional)"
+                      />
+
+                      <button
+                        className="btn student-submit-btn"
+                        onClick={() => onSubmit(a._id, i)}
+                      >
+                        {a.submission?.at ? 'Reenviar tarea' : 'Enviar tarea'}
+                      </button>
+                    </div>
+
+                    {/* feedback del docente, si existe */}
+                    {a.feedback?.at && (
+                      <p className="student-feedback">
+                        <b>Feedback:</b> {a.feedback.text || '—'} ·{' '}
+                        <b>Puntaje:</b> {a.feedback.score ?? '—'}
+                      </p>
+                    )}
+
+                    {/* bloque de preguntas IA + respuestas */}
+                    <IAQuestionsBlock
+                      assignment={a}
+                      assignmentIndex={i}
+                      answerDrafts={answerDrafts}
+                      onChangeDraft={handleDraftChange}
+                      onSendAnswer={handleSendAnswer}
+                      answerLoadingKey={answerLoadingKey}
+                    />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

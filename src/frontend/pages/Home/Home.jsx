@@ -1,89 +1,145 @@
 import React from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
 import "../../styles/home.css";
 
 export default function Home() {
-  const { user } = useAuth();
-
   return (
-    <div className="home-container">
+    <main className="home-container">
+      {/* HERO PRINCIPAL */}
       <section className="home-hero">
-        <h1>Tutor Virtual — Plataforma Educativa</h1>
-        <p>IA · Gamificación · Automatización para mejorar el aprendizaje</p>
+        <div className="home-hero-main">
+          <p className="home-hero-kicker">Lectura crítica · IA educativa</p>
 
-        {/* bloque de “sobre el proyecto” que ya tenías */}
-        <div className="card" style={{marginTop:16}}>
-          <h3>Sobre el Proyecto (Acerca de la empresa)</h3>
-          <p>Tutor Virtual integra IA y metodologías activas para promover la comprensión crítica y el aprendizaje adaptativo.</p>
+          <h1 className="home-hero-title">Tutor Virtual de Lectura Crítica</h1>
 
-          <h3>Misión</h3>
-          <p>Ofrecer herramientas educativas inteligentes que desarrollen pensamiento crítico y lectura comprensiva.</p>
+          <p className="home-hero-subtitle">
+            Una forma sencilla de trabajar lectura y argumentación con apoyo
+            inteligente: el docente guía, el estudiante escribe y la IA acompaña
+            sin reemplazar.
+          </p>
 
-          <h3>Visión</h3>
-          <p>Ser la plataforma de referencia en educación digital y análisis crítico asistido por IA.</p>
+          <div className="home-hero-row">
+            <Link to="/login" className="btn-primary home-hero-cta">
+              Entrar a la plataforma
+            </Link>
+            <span className="home-hero-hint">
+              Diseñado para cursos de lectura crítica con docentes y
+              estudiantes.
+            </span>
+          </div>
 
-          <h3>Objetivos educativos</h3>
-          <ul>
-            <li>Mejorar la comprensión lectora.</li>
-            <li>Detectar y corregir sesgos en textos.</li>
-            <li>Entregar retroalimentación personalizada.</li>
-            <li>Motivar mediante gamificación.</li>
+          <div className="home-hero-tags">
+            <span className="hero-tag">Ruta clara</span>
+            <span className="hero-tag">Docente al mando</span>
+            <span className="hero-tag">IA integrada</span>
+          </div>
+        </div>
+      </section>
+
+      {/* BLOQUE 1: ¿QUÉ SE HACE CON EL TUTOR? */}
+      <section className="home-section">
+        <header className="home-section-header">
+          <h2 className="home-section-title">¿Qué se hace con el Tutor?</h2>
+          <p className="home-section-sub">
+            El foco es simple: leer mejor, escribir mejor y entender qué tan
+            sólidas son las ideas que se van construyendo.
+          </p>
+        </header>
+
+        <div className="feature-list">
+          <article className="feature-row">
+            <h3 className="feature-title">Proponer lecturas</h3>
+            <p className="feature-text">
+              El docente elige textos o casos y marca qué tipo de análisis
+              quiere que se trabaje.
+            </p>
+          </article>
+
+          <article className="feature-row">
+            <h3 className="feature-title">Responder por pasos</h3>
+            <p className="feature-text">
+              El estudiante responde en partes, con indicaciones claras y
+              retroalimentación progresiva.
+            </p>
+          </article>
+
+          <article className="feature-row">
+            <h3 className="feature-title">Revisar y mejorar</h3>
+            <p className="feature-text">
+              El docente revisa y observa cómo cambian las respuestas a lo largo
+              del tiempo, con apoyo de la IA para detectar puntos débiles.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      {/* BLOQUE 2: DOS VISTAS, UN MISMO CURSO */}
+      <section className="home-section">
+        <header className="home-section-header">
+          <h2 className="home-section-title">Dos vistas, un mismo curso</h2>
+          <p className="home-section-sub">
+            La plataforma se adapta a lo que cada rol necesita ver, pero todos
+            trabajan sobre la misma actividad.
+          </p>
+        </header>
+
+        <div className="roles-grid">
+          <article className="role-card">
+            <p className="role-kicker">Vista del estudiante</p>
+            <h3 className="role-title">Módulo Estudiante</h3>
+            <p className="role-text">
+              El estudiante organiza sus lecturas, envía respuestas y sigue sus
+              progresos de forma clara.
+            </p>
+          </article>
+
+          <article className="role-card">
+            <p className="role-kicker">Vista del docente</p>
+            <h3 className="role-title">Módulo Docente</h3>
+            <p className="role-text">
+              El docente arma tareas, revisa textos y tiene una visión rápida
+              del avance del grupo.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      {/* BLOQUE 3: IA */}
+      <section className="home-section">
+        <div className="ai-block">
+          <h2 className="home-section-title">La IA acompaña, no reemplaza</h2>
+          <p className="home-section-sub">
+            La idea no es que la IA resuelva la lectura por el estudiante, sino
+            que ayude a pensar mejor lo que ya se escribió.
+          </p>
+
+          <ul className="ai-list">
+            <li>
+              <strong>Uso puntual:</strong> aparece solo cuando hace falta, no
+              domina el proceso.
+            </li>
+            <li>
+              <strong>Control del docente:</strong> el profesor decide qué se
+              corrige y qué se toma en cuenta.
+            </li>
+            <li>
+              <strong>Progreso visible:</strong> seguimiento claro de cómo
+              cambia la argumentación.
+            </li>
           </ul>
         </div>
       </section>
 
-      {/* Grilla de módulos */}
-      <section className="tiles-grid">
-        <article className="tile-card">
-          <h4 className="tile-title">Módulo Estudiante</h4>
-          <p className="tile-desc">Textos sugeridos, subida, análisis y resultados.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/estudiante/lecturas">Ir</a>
-          </div>
-        </article>
-
-        <article className="tile-card">
-          <h4 className="tile-title">Módulo Docente</h4>
-          <p className="tile-desc">Panel, gestión de contenido y reportes.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/docente/lecturas">Ir</a>
-          </div>
-        </article>
-
-        <article className="tile-card">
-          <h4 className="tile-title">Módulo IA</h4>
-          <p className="tile-desc">Generación de preguntas, análisis de sesgos y evaluación automática.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/ia">Ir</a>
-          </div>
-        </article>
-
-        <article className="tile-card">
-          <h4 className="tile-title">Automatización</h4>
-          <p className="tile-desc">Notificaciones, flujos y seguimiento de inactividad.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/automatizacion">Ir</a>
-          </div>
-        </article>
-
-        <article className="tile-card">
-          <h4 className="tile-title">Gamificación</h4>
-          <p className="tile-desc">Insignias, niveles y ranking.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/gamificacion">Ir</a>
-          </div>
-        </article>
-
-        <article className="tile-card">
-          <h4 className="tile-title">Contacto / Soporte</h4>
-          <p className="tile-desc">FAQ, formulario y chat.</p>
-          <div className="tile-actions">
-            <a className="btn btn-primary" href="/contacto">Ir</a>
-          </div>
-        </article>
+      {/* CTA FINAL */}
+      <section className="home-section home-section-cta">
+        <h2 className="cta-title">¿Listo para comenzar?</h2>
+        <p className="cta-subtitle">
+          Entra ahora y prueba el tutor como docente o estudiante.
+        </p>
+        <Link to="/register" className="btn-primary cta-button">
+          Crear cuenta
+        </Link>
       </section>
-    </div>
+    </main>
   );
 }

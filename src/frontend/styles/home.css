@@ -1,56 +1,270 @@
-/* contenedor decente */
+/* ==========================
+   CONTENEDOR GENERAL
+   ========================== */
+
 .home-container{
-  max-width: 1200px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 36px 16px 60px;
 }
 
-/* hero compacto */
+/* ==========================
+   HERO SIN RECTÁNGULO
+   ========================== */
+
 .home-hero{
-  margin: 28px 0 20px;
-  background: linear-gradient(180deg, rgba(19,18,44,.96), rgba(19,18,44,.88));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 24px 28px;
+  position: relative;
+  margin: 28px 0 34px;
+  padding: 22px 0 8px;
+  border: none;
+  background: transparent; /* nada de caja ni banda */
 }
 
-/* grilla responsiva */
-.tiles-grid{
-  display: grid;
-  gap: 18px;
-  grid-template-columns: 1fr;            /* móvil */
-}
-@media (min-width: 720px){
-  .tiles-grid{ grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1100px){
-  .tiles-grid{ grid-template-columns: repeat(3, 1fr); }
-}
-
-/* tarjeta */
-.tile-card{
-  display: flex;
-  flex-direction: column;
-  min-height: 170px;                      /* altura base */
-  background: linear-gradient(180deg, rgba(18,17,41,.95), rgba(18,17,41,.85));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 16px;
-}
-.tile-title{
-  color:#f4f3ff; font-weight:800; margin: 0 0 6px;
-}
-.tile-desc{
-  color:#dcd9ff; margin: 0 0 12px;
-}
-.tile-actions{
-  margin-top: auto;                       /* empuja el botón al fondo */
-  display:flex; gap:10px; align-items:center;
+/* Halo magenta suave detrás del área del hero */
+.home-hero::before{
+  content: "";
+  position: absolute;
+  top: -120px;
+  left: -160px;
+  width: 480px;
+  height: 480px;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,79,216,.55), transparent 60%);
+  opacity: .75;
+  filter: blur(4px);
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* tarjeta que ocupa 2 columnas (si quieres destacar una) */
-@media (min-width:1100px){
-  .tile-span-2{ grid-column: span 2; }
+.home-hero-main{
+  position: relative;
+  max-width: 720px;
+  z-index: 1; /* por encima del halo */
+}
+
+.home-hero-kicker{
+  margin: 0 0 4px;
+  font-size: .82rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(248,240,255,.8);
+}
+
+/* Título grande, sin caja, con gradiente en el texto */
+.home-hero-title{
+  margin: 0 0 6px;
+  font-size: 2.3rem;
+  font-weight: 760;
+  letter-spacing: .01em;
+  background: linear-gradient(120deg,#ffffff,#ff9cf5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-hero-subtitle{
+  margin: 0 0 16px;
+  font-size: .97rem;
+  color: var(--muted);
+  max-width: 540px;
+}
+
+/* fila CTA + texto de apoyo */
+.home-hero-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  margin-bottom:10px;
+}
+
+/* versión más suave del botón dentro del hero */
+.home-hero-cta{
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:.92rem;
+  box-shadow:0 10px 26px rgba(0,0,0,.75);
+  text-decoration:none;
+}
+
+/* mensaje pequeñito que equilibra el peso visual del botón */
+.home-hero-hint{
+  font-size:.82rem;
+  color:#dcd0ff;
+}
+
+/* chips de “Ruta clara / Docente / IA” */
+.home-hero-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:2px;
+}
+
+.hero-tag{
+  font-size:.78rem;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(18,3,40,.96);
+  border:1px solid rgba(255,79,216,.65);
+  color:#fdf4ff;
+}
+
+/* ==========================
+   SECCIONES GENERALES
+   ========================== */
+
+.home-section{
+  margin-top: 30px;
+}
+
+.home-section-header{
+  margin-bottom: 14px;
+}
+
+.home-section-title{
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.home-section-sub{
+  margin: 0;
+  font-size: .93rem;
+  color: var(--muted);
+  max-width: 640px;
+}
+
+/* ==========================
+   BLOQUE: ¿QUÉ SE HACE CON EL TUTOR?
+   ========================== */
+
+.feature-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:8px;
+}
+
+.feature-row{
+  padding:14px 16px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#24093e,#1a052c);
+  border:1px solid rgba(255,79,216,.45);
+}
+
+.feature-title{
+  margin:0 0 4px;
+  font-size:.98rem;
+  font-weight:600;
+}
+
+.feature-text{
+  margin:0;
+  font-size:.9rem;
+  color:#f0e9ff;
+}
+
+/* ==========================
+   BLOQUE: DOS VISTAS, UN MISMO CURSO
+   ========================== */
+
+.roles-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:14px;
+  margin-top:10px;
+}
+
+.role-card{
+  padding:14px 16px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#24093e,#1a052c);
+  border:1px solid rgba(255,79,216,.45);
+}
+
+.role-kicker{
+  margin:0 0 2px;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.16em;
+  color:rgba(229,220,255,.8);
+}
+
+.role-title{
+  margin:0 0 4px;
+  font-size:.98rem;
+  font-weight:600;
+}
+
+.role-text{
+  margin:0;
+  font-size:.9rem;
+  color:#f0e9ff;
+}
+
+/* ==========================
+   BLOQUE IA
+   ========================== */
+
+.ai-block{
+  padding:18px 18px 16px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#24093e,#1a052c);
+  border:1px solid rgba(255,79,216,.5);
+}
+
+.ai-list{
+  margin:10px 0 0;
+  padding-left:18px;
+  font-size:.9rem;
+  color:#f5eeff;
+}
+
+.ai-list li{
+  margin-bottom:4px;
+}
+
+/* ==========================
+   CTA FINAL
+   ========================== */
+
+.home-section-cta{
+  text-align:center;
+  margin-top:36px;
+}
+
+.cta-title{
+  margin:0 0 4px;
+  font-size:1.3rem;
+  font-weight:650;
+}
+
+.cta-subtitle{
+  margin:0 0 16px;
+  font-size:.93rem;
+  color:var(--muted);
+}
+
+.cta-button{
+  padding-inline:22px;
+}
+
+/* ==========================
+   RESPONSIVE
+   ========================== */
+
+@media (max-width: 720px){
+  .home-container{
+    padding-inline:12px;
+  }
+
+  .home-hero{
+    margin:22px 0 24px;
+    padding-top:20px;
+  }
+
+  .home-hero-main{
+    max-width:100%;
+  }
 }
