@@ -1,114 +1,217 @@
 // src/frontend/pages/ModuloEstudiante/Estudiante.jsx
 import React, { useState, useEffect } from "react";
-import { Container, Card, Button, ListGroup, Form, ProgressBar } from "react-bootstrap";
 import { useAuth } from "../../../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import "../../../index.css";
+
+const EMPTY_PROFILE = {
+  carrera: "",
+  ciclo: "",
+  objetivos: "",
+  intereses: "",
+  horario: "",
+  contacto: "",
+  recordatorios: true,
+};
 
 export default function Estudiante() {
   const { user } = useAuth();
-  const [suggested] = useState([
-    { id: 1, title: "La importancia del pensamiento crítico" },
-    { id: 2, title: "Ética y tecnología" },
-    { id: 3, title: "IA y educación" },
-  ]);
-  const [text, setText] = useState("");
-  const [questions, setQuestions] = useState([]);
-  const [biasResult, setBiasResult] = useState(null);
-  const [score, setScore] = useState(null);
+  const navigate = useNavigate();
 
-  const historyKey = `history_${user?.email || "anon"}`;
-  const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem(historyKey) || "[]"));
+  const [form, setForm] = useState(EMPTY_PROFILE);
+  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const storageKey = user?._id
+    ? `tvlc_student_profile_${user._id}`
+    : "tvlc_student_profile";
 
   useEffect(() => {
-    localStorage.setItem(historyKey, JSON.stringify(history));
-  }, [history, historyKey]);
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setForm({ ...EMPTY_PROFILE, ...parsed });
+      } else if (user?.email) {
+        setForm((prev) => ({ ...prev, contacto: user.email }));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [storageKey, user]);
 
-  const handleUpload = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setText(ev.target.result);
-    reader.readAsText(f);
-  };
+  function setField(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
 
-  const handleAnalyze = () => {
-    if (!text) return alert("Sube o pega un texto");
-    // Simular IA
-    const gen = [
-      "¿Cuál es la idea principal?",
-      "Menciona dos argumentos del autor.",
-      "¿Qué contraargumentos existen?"
-    ];
-    setQuestions(gen);
-    setBiasResult(Math.random() > 0.7 ? "Posible sesgo detectado (tono parcial)" : "Sin sesgos relevantes");
-    const newScore = Math.floor(60 + Math.random()*40);
-    setScore(newScore);
-    setHistory((h) => [{ date: new Date().toISOString(), score: newScore }, ...h].slice(0,20));
-  };
+  async function onSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+    setMsg("");
+
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(storageKey, JSON.stringify(form));
+      }
+      setMsg("Cambios guardados en tu perfil ✅ Redirigiendo a tus lecturas…");
+
+      setTimeout(() => {
+        navigate("/estudiante/lecturas");
+      }, 900);
+    } catch {
+      setMsg("No se pudo guardar el perfil.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
+    <div className="page-wrap">
+      <div className="section-header">
+        <h3>Módulo de estudiante</h3>
+        <div className="actions">
+          <Link className="link-btn" to="/estudiante/lecturas">
+            Ver lecturas asignadas
+          </Link>
+        </div>
+      </div>
 
-<div className="page-wrap">
-  <div className="section-header">
-  <h3>Módulo de estudiante</h3>
-  <div className="actions">
-    <Link className="link-btn" to="/estudiante/lecturas">Ver lecturas asignadas</Link>
-  </div>
-  </div>
+      <div className="student-wrap">
+        <div className="student-card">
+          <header className="student-header">
+            <h1>Perfil de estudiante</h1>
+            <p>
+              Estos datos ayudan a adaptar las actividades y el seguimiento de
+              tu lectura crítica.
+            </p>
+            {user && (
+              <p
+                style={{
+                  fontSize: ".82rem",
+                  marginTop: "4px",
+                  opacity: 0.9,
+                }}
+              >
+                Sesión: <strong>{user.nombre}</strong> · {user.email}
+              </p>
+            )}
+          </header>
 
-    <Container className="my-5">
-      <h2>Módulo Estudiante</h2>
-      <p className="text-muted">Textos sugeridos, subida de texto, análisis crítico y gamificación.</p>
+          <form className="student-form" onSubmit={onSubmit}>
+            <div className="student-two-columns">
+              <div className="student-form-group">
+                <label>Programa / carrera</label>
+                <input
+                  className="auth-input"
+                  value={form.carrera}
+                  onChange={(e) => setField("carrera", e.target.value)}
+                  placeholder="Ej. Ingeniería de Sistemas"
+                />
+              </div>
 
-      <Card className="mb-3">
-        <Card.Body>
-          <h5>Textos sugeridos</h5>
-          <ListGroup>
-            {suggested.map(s => <ListGroup.Item key={s.id}>{s.title} <Button variant="link" size="sm" className="float-end" onClick={() => setText("Contenido del texto: " + s.title)}>Seleccionar</Button></ListGroup.Item>)}
-          </ListGroup>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-3">
-        <Card.Body>
-          <h5>Subida de texto propio</h5>
-          <Form.Group className="mb-2">
-            <Form.Control type="file" accept=".txt" onChange={handleUpload} />
-          </Form.Group>
-          <Form.Group className="mb-2">
-            <Form.Control as="textarea" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder="Pega o escribe tu texto aquí" />
-          </Form.Group>
-          <Button onClick={handleAnalyze} disabled={!text}>Analizar (IA)</Button>
-        </Card.Body>
-      </Card>
-
-      {questions.length > 0 && (
-        <Card className="mb-3">
-          <Card.Body>
-            <h5>Preguntas generadas por IA</h5>
-            <ListGroup>{questions.map((q,i)=><ListGroup.Item key={i}>{q}</ListGroup.Item>)}</ListGroup>
-            <div className="mt-3"><strong>Detección de sesgos:</strong> {biasResult}</div>
-          </Card.Body>
-        </Card>
-      )}
-
-      {score !== null && (
-        <Card className="mb-3">
-          <Card.Body>
-            <h5>Resultado y retroalimentación</h5>
-            <p>Puntaje: <strong>{score}</strong> / 100</p>
-            <ProgressBar now={score} label={`${score}%`} />
-            <div className="mt-3">
-              <h6>Progreso histórico</h6>
-              <ListGroup>
-                {history.map((h,i)=>(<ListGroup.Item key={i}>{new Date(h.date).toLocaleString()} — {h.score}</ListGroup.Item>))}
-              </ListGroup>
-              <div className="mt-3"><Link to="/gamificacion"><Button>Ir a Gamificación</Button></Link></div>
+              <div className="student-form-group">
+                <label>Ciclo o semestre</label>
+                <input
+                  className="auth-input"
+                  value={form.ciclo}
+                  onChange={(e) => setField("ciclo", e.target.value)}
+                  placeholder="Ej. 10.º ciclo"
+                />
+              </div>
             </div>
-          </Card.Body>
-        </Card>
-      )}
-    </Container>
+
+            <div className="student-form-group">
+              <label>Objetivo principal con este curso</label>
+              <textarea
+                className="auth-input"
+                rows={3}
+                value={form.objetivos}
+                onChange={(e) => setField("objetivos", e.target.value)}
+                placeholder="Ej. mejorar mis argumentos escritos, prepararme para tesis, etc."
+              />
+            </div>
+
+            <div className="student-form-group">
+              <label>Temas o tipos de texto que te interesan</label>
+              <textarea
+                className="auth-input"
+                rows={3}
+                value={form.intereses}
+                onChange={(e) => setField("intereses", e.target.value)}
+                placeholder="Ensayos, tecnología, ética, derecho, actualidad..."
+              />
+            </div>
+
+            <div className="student-two-columns">
+              <div className="student-form-group">
+                <label>Horario habitual de estudio</label>
+                <input
+                  className="auth-input"
+                  value={form.horario}
+                  onChange={(e) => setField("horario", e.target.value)}
+                  placeholder="Ej. noches entre semana, sábados por la mañana"
+                />
+              </div>
+
+              <div className="student-form-group">
+                <label>Correo de contacto</label>
+                <input
+                  className="auth-input"
+                  value={form.contacto}
+                  onChange={(e) => setField("contacto", e.target.value)}
+                  placeholder="tu@correo.com"
+                />
+              </div>
+            </div>
+
+            <div className="student-form-group">
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.recordatorios}
+                  onChange={(e) =>
+                    setField("recordatorios", e.target.checked)
+                  }
+                  style={{ accentColor: "var(--accent)" }}
+                />
+                Deseo recibir recordatorios sobre lecturas y entregas.
+              </label>
+            </div>
+
+            <div className="student-footer">
+              <div className="student-msg">
+                {msg && (
+                  <span
+                    style={{
+                      color: msg.includes("✅")
+                        ? "var(--accent-strong)"
+                        : "#fecaca",
+                    }}
+                  >
+                    {msg}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

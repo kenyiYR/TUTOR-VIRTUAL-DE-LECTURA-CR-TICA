@@ -1,86 +1,142 @@
+/* ===== LAYOUT LOGIN / AUTH ===== */
+
 .auth-wrap{
   min-height:calc(100vh - 140px);
-  display:grid; place-items:center;
+  padding:32px 16px;
+  display:grid;
+  place-items:center;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(139,92,246,.18), transparent 60%),
-    radial-gradient(1000px 500px at 120% 10%, rgba(99,102,241,.14), transparent 50%);
+    radial-gradient(1200px 900px at 0% 0%, rgba(255,79,216,.18), transparent 60%),
+    radial-gradient(1000px 700px at 100% 0%, rgba(148,0,211,.18), transparent 55%),
+    linear-gradient(180deg,#05000b 0%, #050012 40%, #050008 100%);
 }
+
+/* tarjeta central estilo “neumorfismo suave” */
 .auth-card{
-  max-width:460px; width:100%;
-  background:linear-gradient(180deg, rgba(18,17,41,.96), rgba(18,17,41,.86));
-  border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow); padding:28px; color:var(--text);
-}
-.auth-input{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
-.auth-input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--ring); }
-.auth-title{ font-size:28px; margin:0 0 6px; font-weight:800; }
-.auth-sub{ color:var(--muted); margin:0 0 22px; }
-.auth-actions{ margin-top:18px; display:flex; align-items:center; gap:12px; justify-content:space-between; }
-.auth-error{ background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); }
-
-.auth-card{ max-width:480px; width:100%; }
-.auth-title{ font-size:28px; margin:0 0 6px; font-weight:800; }
-.auth-sub{ color:var(--muted); margin:0 0 20px; }
-
-.auth-form{ display:grid; gap:12px; }
-.auth-form .row{ display:flex; gap:10px; align-items:center; }
-.auth-input{ width:100%; }             
-.auth-actions{ display:flex; gap:12px; justify-content:space-between; align-items:center; }
-.auth-form label{ color:#d6d4ff; }
-
-.auth-wrap{ padding: 24px 0; }
-
-/* --- Layout auth: inputs anchos y Mostrar a la derecha --- */
-.auth-card { max-width: 520px; width: 100%; }
-
-/* Fila de contraseña: input + botón Mostrar en una línea */
-.auth-card input[type="password"]{
-  display: inline-block;
-  width: calc(100% - 120px);      /* deja espacio al botón */
-  vertical-align: middle;
-}
-.auth-card input[type="password"] + .btn-primary{
-  display: inline-block;          /* solo el botón inmediato (Mostrar) */
-  width: 110px;
-  margin-left: 10px;
-  vertical-align: middle;
-}
-/* El botón “Entrar” y el resto, a la línea siguiente con buen espacio */
-.auth-card input[type="password"] + .btn-primary + *{
-  display: block;
-  margin-top: 14px;
+  max-width:440px;
+  width:100%;
+  padding:28px 26px 24px;
+  border-radius:8px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255,255,255,.06), transparent 55%),
+    linear-gradient(180deg, rgba(11,0,27,.97), rgba(6,0,18,.94));
+  border:1px solid rgba(255,79,216,.22);
+  box-shadow:
+    0 22px 55px rgba(0,0,0,.95),
+    0 -1px 0 rgba(255,255,255,.06) inset;
+  color:var(--text);
+  backdrop-filter: blur(18px);
 }
 
-/* Orden visual estable en el formulario */
-.auth-form{ display:grid; gap:12px; }
-.auth-form label{ color:#dcd9ff; }
-.auth-input{ width:100%; }
-
-/* Mantener input de contraseña + botón Mostrar en línea */
-.auth-card input:has(+ .btn-primary){
-  display:inline-block;
-  width: calc(100% - 120px);   /* deja hueco fijo para el botón */
-  vertical-align: middle;
-  height: 44px;                /* altura consistente */
+/* títulos y subtítulos del login */
+.auth-title{
+  margin:0 0 6px;
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:.02em;
 }
 
-.auth-card input:has(+ .btn-primary) + .btn-primary{
-  display:inline-block; 
-  width: 110px;                /* ancho fijo para que no “salte” al cambiar texto */
-  margin-left: 10px;
-  vertical-align: middle;
-  height: 44px;
-  line-height: 44px;           /* alinea el texto del botón verticalmente */
-  padding: 0 12px;             /* evita crecimiento raro por padding */
+.auth-sub{
+  margin:0 0 22px;
+  font-size:0.95rem;
+  color:var(--muted);
 }
 
-/* Espaciado sano del resto del formulario */
-.auth-form{ display:grid; gap:12px; }
-
-/* Fallback simple: si por alguna razón no matchea :has, al menos cuando sea password funciona */
-.auth-card input[type="password"]{
-  display:inline-block; width: calc(100% - 120px); vertical-align: middle; height:44px;
+/* estructura del formulario */
+.auth-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
-.auth-card input[type="password"] + .btn-primary{
-  display:inline-block; width:110px; margin-left:10px; vertical-align: middle; height:44px; line-height:44px; padding:0 12px;
+
+/* etiquetas de los campos */
+.auth-form label{
+  font-size:0.9rem;
+  color:#f9eaff;
+}
+
+/* input con magenta suave + focus bonito */
+.auth-input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#0b001a,#060010);
+  color:var(--text);
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease,
+    background .15s ease,
+    transform .1s ease;
+}
+
+.auth-input::placeholder{
+  color:rgba(233,225,255,.55);
+}
+
+.auth-input:focus{
+  outline:none;
+  border-color:rgba(255,79,216,.85);
+  box-shadow:
+    0 0 0 1px rgba(255,79,216,.55),
+    0 0 0 9px rgba(255,79,216,.08);
+  background:
+    radial-gradient(circle at 0 0, rgba(255,79,216,.12), transparent 55%),
+    linear-gradient(180deg,#0b001a,#050010);
+  transform: translateY(-0.5px);
+}
+
+/* fila de contraseña: input + botón Mostrar */
+.auth-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.auth-row .auth-input{
+  flex:1;
+}
+
+.auth-row .btn-primary{
+  min-width:110px;
+  padding:10px 12px;
+  border-radius:8px;
+}
+
+/* acciones inferiores (Entrar + Crear cuenta) */
+.auth-actions{
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.auth-actions .btn-primary{
+  padding-inline:18px;
+}
+
+/* texto auxiliar e info extra */
+.auth-note{
+  margin-top:16px;
+  font-size:0.8rem;
+  color:rgba(230,222,255,.75);
+}
+
+/* mensajes de error */
+.auth-error{
+  margin-top:10px;
+  padding:8px 10px;
+  border-radius:8px;
+  background:rgba(239,68,68,.12);
+  border:1px solid rgba(248,113,113,.6);
+  color:#fee2e2;
+  font-size:0.85rem;
+}
+
+/* responsive: un poco más compacto en móvil */
+@media (max-width: 640px){
+  .auth-card{
+    padding:22px 18px 20px;
+  }
 }

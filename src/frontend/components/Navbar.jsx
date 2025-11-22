@@ -6,11 +6,8 @@ import { getUser, getUserRole, logoutClient } from "../services/auth.js";
 export default function Navbar() {
   const navigate = useNavigate();
 
-  // Datos de sesión desde tus servicios
-  const user = getUser();                  // puede traer { rol } o { role }
-  const roleFromSvc = getUserRole();       // string o null
-
-  // Normaliza el rol para que funcione con 'rol' o 'role'
+  const user = getUser();
+  const roleFromSvc = getUserRole();
   const role = roleFromSvc || user?.rol || user?.role || null;
 
   function handleLogout() {
@@ -22,45 +19,69 @@ export default function Navbar() {
   }
 
   return (
-    <BNavbar bg="dark" variant="dark" expand="lg" className="site-nav">
+    <BNavbar
+      expand="lg"
+      variant="dark"
+      className="site-nav navbar-dark"
+    >
       <Container>
-        <BNavbar.Brand as={Link} to="/">Tutor Virtual</BNavbar.Brand>
+        <BNavbar.Brand as={Link} to="/" className="site-nav-brand">
+          Tutor Virtual
+        </BNavbar.Brand>
 
-        <BNavbar.Toggle aria-controls="main-nav" />
-        <BNavbar.Collapse id="main-nav">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
+        <BNavbar.Toggle aria-controls="main-navbar" />
+
+        <BNavbar.Collapse id="main-navbar">
+          <Nav className="me-auto site-nav-links">
+            <Nav.Link as={Link} to="/">
+              Inicio
+            </Nav.Link>
 
             {role === "estudiante" && (
-              <Nav.Link as={Link} to="/estudiante">Módulo Estudiante</Nav.Link>
+              <Nav.Link as={Link} to="/estudiante/lecturas">
+                Estudiante
+              </Nav.Link>
             )}
 
             {role === "docente" && (
-              <Nav.Link as={Link} to="/docente">Módulo Docente</Nav.Link>
+              <Nav.Link as={Link} to="/docente/Lecturas">
+                Docente
+              </Nav.Link>
             )}
 
-            {/* módulos visibles para ambos (requieren login si tu app así lo decide) */}
-            <Nav.Link as={Link} to="/ia">Módulo IA</Nav.Link>
-            <Nav.Link as={Link} to="/automatizacion">Automatización</Nav.Link>
-            <Nav.Link as={Link} to="/gamificacion">Gamificación</Nav.Link>
-            <Nav.Link as={Link} to="/contacto">Contacto</Nav.Link>
+            <Nav.Link as={Link} to="/automatizacion">
+              Automatización
+            </Nav.Link>
+
+            <Nav.Link as={Link} to="/contacto">
+              Contacto
+            </Nav.Link>
           </Nav>
 
-          <Nav className="ms-auto" style={{ alignItems: "center", gap: 16 }}>
+          <Nav className="ms-auto site-nav-session">
             {user ? (
               <>
-                <span style={{ color: "rgba(255,255,255,.8)" }}>
-                  Sesión: <b>{role}</b>
+                <span className="site-nav-user">
+                  Sesión:&nbsp;
+                  <strong>{user?.nombre || user?.email}</strong>
+                  {role && <span className="site-nav-role"> · {role}</span>}
                 </span>
-                {/* Te da igual si tu test busca <button> o <Button>, ambos exponen role="button" */}
-                <Button variant="primary" onClick={handleLogout}>
+                <Button
+                  size="sm"
+                  className="btn-primary site-nav-logout"
+                  onClick={handleLogout}
+                >
                   Cerrar sesión
                 </Button>
               </>
             ) : (
               <>
-                <Nav.Link as={Link} to="/login">Login</Nav.Link>
-                <Nav.Link as={Link} to="/register">Registro</Nav.Link>
+                <Nav.Link as={Link} to="/login">
+                  Login
+                </Nav.Link>
+                <Nav.Link as={Link} to="/register">
+                  Registro
+                </Nav.Link>
               </>
             )}
           </Nav>
