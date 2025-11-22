@@ -39,6 +39,6 @@ describe("LecturasDocente", () => {
     await waitFor(() => expect(uploadReading).not.toHaveBeenCalled());
 
     // 2) La vista sigue igual (mensaje de lista vacía sigue visible)
-    expect(screen.getByText(/aún no subes lecturas/i)).toBeInTheDocument();
+    expect(screen.getByText(/no tienes lecturas registradas todavía/i)).toBeInTheDocument();
   });
 });
