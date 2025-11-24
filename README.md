@@ -9,13 +9,45 @@ Currently, two official plugins are available:
 
 ## Architecture Used
 
-The project follows the **MERN architecture**:
-
-- **Frontend:** React + Vite  
-- **Backend:** Node.js + Express  
-- **Database:** MongoDB (via Mongoose)  
-- **Communication:** REST API using `fetch`/`axios`  
-- **Deployment:** Cloud ready  
+Tutor Virtual de Lectura Crítica
+Este proyecto es una aplicación web desarrollada con el stack MERN (MongoDB, Express, React, Node.js), diseñada para mejorar las habilidades de comprensión lectora mediante actividades personalizadas y herramientas de seguimiento tanto para estudiantes como docentes.
+Tecnologías utilizadas
+•	Frontend: React.js
+•	Backend: Node.js + Express
+•	Base de datos: MongoDB
+•	Control de versiones: Git / GitHub
+ Funcionalidades principales
+Módulo Estudiante
+•	Registro e inicio de sesión.
+•	Perfil del estudiante.
+•	Acceso al tablero de lecturas asignadas.
+•	Desarrollo de actividades de comprensión lectora.
+•	Visualización de resultados.
+Módulo Docente
+•	Registro e inicio de sesión.
+•	Perfil del Docente
+•	Cargar lecturas.
+•	Asignación de lecturas.
+•	Gestión de estudiantes.
+•	Revisión de resultados y progreso.
+________________________________________
+Instalación y ejecución
+1️Clonar el repositorio
+git clone https://github.com/kenyiYR/TUTOR-VIRTUAL-DE-LECT.git
+cd TUTOR-VIRTUAL-DE-LECT
+2Instalar dependencias
+Frontend:
+cd src/backend
+npm install
+Backend:
+cd src/frontend
+npm install
+Ejecutar la app
+Frontend:
+npm run dev -- --host 0.0.0.0 --port 5173
+Backend:
+Docker compose up --build
+  
 
 ### Diagram
 
