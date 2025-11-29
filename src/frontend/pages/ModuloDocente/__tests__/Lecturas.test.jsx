@@ -9,6 +9,10 @@ jest.mock("../../../services/readings.js", () => ({
   uploadReading: jest.fn(),
 }));
 
+jest.mock("../../../services/teacher.js", () => ({
+  listAssignableStudents: jest.fn().mockResolvedValue([]),
+}));
+
 // Evita que Jest cargue módulos que usan import.meta.env
 jest.mock("../../../services/assignments.js", () => ({
   assignReading: jest.fn(),
