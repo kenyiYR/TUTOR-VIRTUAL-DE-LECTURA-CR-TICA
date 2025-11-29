@@ -503,6 +503,17 @@
   color: #e0e7ff;
 }
 
+.status-leido {
+  background: rgba(156, 252, 255, 0.18);
+  color: #c4f9ff;
+}
+
+.status-entregado {
+  background: rgba(255, 214, 120, 0.18);
+  color: #ffe6a4;
+}
+
+
 .board-status-warn {
   border-color: rgba(234, 179, 8, 0.7);
   background: rgba(234, 179, 8, 0.16);
@@ -886,4 +897,825 @@
   transform: none;
   box-shadow: none;
   cursor: default;
+}
+
+/* ===========================
+   Tarjetas de asignaciones (lista)
+   =========================== */
+
+.student-assignment-card {
+  position: relative;
+  border-radius: 18px;
+  backdrop-filter: blur(18px);
+  background:
+    radial-gradient(circle at top left, rgba(255, 47, 185, 0.18), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(144, 94, 255, 0.25), rgba(8, 5, 25, 0.96) 60%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+}
+
+.student-assignment-title {
+  color: #fdf2ff;
+  font-weight: 600;
+}
+
+.student-assignment-desc {
+  color: rgba(242, 224, 255, 0.92);
+}
+
+/* ===========================
+   Botón "Ver detalle de la asignación"
+   =========================== */
+
+.btn.student-detail-btn {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  background: linear-gradient(135deg, #ff2fb9, #b46bff);
+  color: #ffffff;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+
+  box-shadow: 0 12px 32px rgba(255, 47, 185, 0.4);
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    filter 0.12s ease-out;
+}
+
+.btn.student-detail-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 40px rgba(180, 107, 255, 0.55);
+  filter: brightness(1.05);
+}
+
+.btn.student-detail-btn:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+/* Botones grises auxiliares (marcar leído, volver, etc.) */
+.btn.gray {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e9ddff;
+  font-weight: 500;
+}
+
+.btn.gray:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Link "Abrir lectura" */
+.student-open-link {
+  color: #ff8ce5;
+  font-weight: 500;
+}
+
+/* ===========================
+   Texto general en panel / detalle
+   =========================== */
+
+.panel-card h2,
+.panel-card h3,
+.panel-card h4 {
+  color: #fdf3ff;
+}
+
+.panel-card p {
+  color: rgba(233, 214, 255, 0.96);
+}
+
+.text-muted {
+  color: rgba(210, 190, 255, 0.9);
+}
+
+/* Badge de estado en el detalle (status-badge) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(19, 10, 49, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fbe6ff;
+}
+
+/* Puedes matizar por estado si quieres */
+.status-pendiente {
+  background: rgba(255, 187, 92, 0.18);
+  color: #ffd38a;
+}
+
+.status-revisado {
+  background: rgba(116, 255, 194, 0.12);
+  color: #a5ffd9;
+}
+
+/* ===========================
+   Estado de la IA
+   =========================== */
+
+.ia-status {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ia-status-pending {
+  color: #ffd66b;
+}
+
+.ia-status-ready {
+  color: #9cf3ff;
+}
+
+.ia-status-failed {
+  color: #ff9ba1;
+}
+
+/* ===========================
+   Bloque de preguntas IA en el detalle
+   =========================== */
+
+.ia-questions-block {
+  margin-top: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top, rgba(255, 47, 185, 0.2), rgba(13, 8, 35, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+.ia-questions-header-text .ia-questions-title {
+  color: #fdf3ff;
+  font-weight: 600;
+}
+
+.ia-questions-summary {
+  color: rgba(230, 211, 255, 0.95);
+}
+
+.ia-chip {
+  background: rgba(24, 12, 58, 0.98);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f7e9ff;
+}
+
+.ia-question-prompt {
+  color: #fef3ff;
+  font-weight: 500;
+}
+
+.ia-answer-feedback {
+  background: radial-gradient(circle at top left, rgba(134, 96, 255, 0.25), rgba(10, 7, 30, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* ===========================
+   Subida de archivo y nota en detalle
+   =========================== */
+
+.student-file-label {
+  background: radial-gradient(circle at top, rgba(255, 47, 185, 0.22), rgba(12, 8, 32, 0.96));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fdeeff;
+}
+
+.student-note-input {
+  background: rgba(8, 4, 24, 0.95);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f8ecff;
+}
+
+.student-note-input::placeholder {
+  color: rgba(203, 183, 241, 0.9);
+}
+
+.btn.student-submit-btn {
+  background: linear-gradient(135deg, #ff2fb9, #ff6fd8);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 12px 32px rgba(255, 47, 185, 0.45);
+}
+
+.btn.student-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 44px rgba(255, 111, 216, 0.6);
+}
+
+/* Mensaje global del estudiante (alerts arriba) */
+.student-message {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: radial-gradient(circle at top left, rgba(255, 47, 185, 0.18), rgba(7, 3, 18, 0.98));
+  color: #fef3ff;
+}
+
+/* =====================================
+   DETALLE DE ASIGNACIÓN (estudiante)
+   ===================================== */
+
+/* Contenedor general centrado y respirando */
+.student-assignments-page .panel-wrap {
+  max-width: 1180px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+}
+
+/* Card principal (título + descripción + botones) */
+.student-assignments-page .panel-card:first-of-type {
+  margin-top: 0.75rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 47, 185, 0.18), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(144, 94, 255, 0.28), rgba(8, 5, 25, 0.97) 60%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75);
+}
+
+/* Header del detalle: título + badge de estado */
+.student-assignments-page .panel-card .panel-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.student-assignments-page .panel-card .panel-card-header h2 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 650;
+  color: #fdf3ff;
+}
+
+/* Badge de estado más marcado */
+.student-assignments-page .status-badge {
+  background: radial-gradient(circle at top, rgba(255, 47, 185, 0.32), rgba(22, 8, 54, 0.98));
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff4ff;
+}
+
+/* Descripción de la lectura: alto contraste pero sin quemar ojos */
+.student-assignments-page .panel-card .text-muted {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(245, 232, 255, 0.96);
+}
+
+/* Bloque de botones debajo del título (marcar leído / abrir / IA) */
+.student-assignments-page .panel-card > div:nth-of-type(2) {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Botón "Abrir lectura" dentro del detalle */
+.student-assignments-page .panel-card a.btn {
+  padding-inline: 1.3rem;
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ff9cf1;
+  font-weight: 500;
+}
+
+.student-assignments-page .panel-card a.btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Paso 1 / 2 / 3 / 4: cards más definidas */
+.student-assignments-page .panel-grid {
+  margin-top: 1.5rem !important;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: 1.2rem;
+}
+
+/* En pantallas pequeñas, una columna */
+@media (max-width: 960px) {
+  .student-assignments-page .panel-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Card de pasos */
+.student-assignments-page .panel-grid .panel-card {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top, rgba(255, 47, 185, 0.16), rgba(11, 6, 28, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.75);
+}
+
+/* Paso 4 ocupa ancho completo abajo */
+.student-assignments-page .panel-grid .panel-card:nth-of-type(4) {
+  grid-column: 1 / -1;
+}
+
+/* Títulos de pasos */
+.student-assignments-page .panel-grid .panel-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fef5ff;
+}
+
+/* Texto de pasos */
+.student-assignments-page .panel-grid .panel-card p {
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: rgba(234, 216, 255, 0.96);
+}
+
+/* Preguntas IA dentro del paso 2 ya tenían estilo,
+   solo reforzamos borde y separación aquí */
+.student-assignments-page .panel-grid .ia-questions-block {
+  margin-top: 0.9rem;
+}
+
+/* Botón "Volver a mis tareas" */
+.student-assignments-page .panel-header .btn.gray {
+  padding-inline: 1.1rem;
+  font-size: 0.9rem;
+}
+
+/* Mensajes de feedback (arriba de todo) */
+.student-assignments-page .student-message {
+  margin: 0 auto 1rem;
+  max-width: 1180px;
+}
+
+/* =====================================
+   BOOST DE CONTRASTE EN DETALLE ESTUDIANTE
+   ===================================== */
+
+/* Títulos y párrafos dentro de las cards del detalle */
+.student-assignments-page .panel-card h2,
+.student-assignments-page .panel-card h3,
+.student-assignments-page .panel-card h4,
+.student-assignments-page .panel-card p,
+.student-assignments-page .panel-card .text-muted {
+  color: #fef9ff; /* casi blanco, con un toque magenta */
+}
+
+/* Texto dentro del bloque de preguntas IA */
+.student-assignments-page .ia-questions-block .ia-questions-title,
+.student-assignments-page .ia-questions-block .ia-questions-summary,
+.student-assignments-page .ia-questions-block .ia-question-prompt,
+.student-assignments-page .ia-questions-block p {
+  color: #fff7ff;
+}
+
+/* Texto dentro del feedback de la IA */
+.student-assignments-page .ia-answer-feedback p {
+  color: #fff5ff;
+}
+
+/* Inputs y placeholder del comentario al docente */
+.student-assignments-page .student-note-input {
+  color: #fff8ff;
+}
+
+.student-assignments-page .student-note-input::placeholder {
+  color: rgba(249, 233, 255, 0.9);
+}
+
+/* Por si algún párrafo heredó un color más apagado */
+.student-assignments-page .panel-grid .panel-card p.text-muted {
+  color: #fdf5ff;
+}
+
+/* Descripción de la lectura en el detalle (debajo del título) */
+.student-assignments-page .panel-card:first-of-type p.text-muted {
+  color: #fff9ff;          /* casi blanco */
+  opacity: 1;              /* nada de transparencias raras */
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+/* Por si alguna regla anterior le baja el contraste */
+.student-assignments-page .panel-card:first-of-type p {
+  color: #fff9ff;
+}
+
+/* =====================================
+   ARREGLO BRUTAL PARA TEXTOS OSCUROS
+   EN DETALLE DE ESTUDIANTE
+   ===================================== */
+
+/* Cualquier p.text-muted dentro de las cards de esta página */
+.page-wrap.student-assignments-page .panel-card p.text-muted,
+.page-wrap.student-assignments-page .panel-grid .panel-card p.text-muted {
+  color: #fff9ff !important;   /* casi blanco */
+  opacity: 1 !important;       /* fuera transparencias */
+}
+
+/* Por si algún p sin text-muted hereda gris feo */
+.page-wrap.student-assignments-page .panel-card p,
+.page-wrap.student-assignments-page .panel-grid .panel-card p {
+  color: #fef9ff !important;
+}
+
+/* Header de la vista de lecturas asignadas */
+.student-assignments-header {
+  max-width: 960px;
+  margin: 0 auto 1.5rem;
+}
+
+/* Hover de las cards de asignación (lista) */
+.student-assignment-card {
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+.student-assignment-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.85);
+}
+
+/* Línea de progreso IA en la lista */
+.ia-progress {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: rgba(240, 225, 255, 0.95);
+}
+
+/* Stepper visual usando data-step en los h3 */
+.student-assignments-page .panel-grid .panel-card h3[data-step] {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.student-assignments-page .panel-grid .panel-card h3[data-step]::before {
+  content: attr(data-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff2fb9, #b46bff);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Paso 2 (IA) un poco más protagonista */
+.student-assignments-page .panel-grid .panel-card:nth-of-type(2) {
+  background:
+    radial-gradient(circle at top, rgba(255, 47, 185, 0.28), rgba(11, 6, 28, 0.98));
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Caja de feedback del docente */
+.teacher-feedback-box {
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(116, 255, 194, 0.18), rgba(6, 18, 20, 0.98));
+  border: 1px solid rgba(191, 255, 225, 0.45);
+  color: #fafffb;
+  font-size: 0.9rem;
+}
+
+.teacher-feedback-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #e9fff4;
+}
+
+/* Evitar scroll raro dentro del bloque de IA:
+   dejamos que la página haga scroll normal */
+.student-assignments-page .ia-questions-body {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* =====================================
+   Ajuste fino de cards de pasos (detalle)
+   ===================================== */
+
+/* Que las cards de los pasos tengan padding uniforme
+   y no se "salga" nada hacia los bordes */
+.student-assignments-page .panel-grid .panel-card {
+  box-sizing: border-box;
+  padding: 1rem 1.4rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem; /* espacio vertical consistente entre elementos */
+}
+
+/* Que el título con el numerito no quede pegado al borde superior */
+.student-assignments-page .panel-grid .panel-card h3[data-step] {
+  margin-top: 0;
+  margin-bottom: 0.35rem;
+}
+
+/* Un poco más de espacio entre el título del paso y el texto explicativo */
+.student-assignments-page .panel-grid .panel-card h3[data-step] + p {
+  margin-top: 0.1rem;
+}
+
+/* El bloque de preguntas IA dentro del Paso 2,
+   y la zona de subida de archivo / feedback,
+   bajan un poco para no pegarse al texto anterior */
+.student-assignments-page .panel-grid .panel-card .ia-questions-block,
+.student-assignments-page .panel-grid .panel-card .student-assignment-submit,
+.student-assignments-page .panel-grid .panel-card .teacher-feedback-box {
+  margin-top: 0.75rem;
+}
+
+/* Paso 4 (card horizontal) con un poco más de altura mínima
+   para que no se vea tan "aplastado" */
+.student-assignments-page .panel-grid .panel-card:nth-of-type(4) {
+  min-height: 80px;
+}
+
+/* ==============================
+   Tablero Docente: detalle entrega + feedback
+   ============================== */
+
+.board-page .board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.board-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.board-card-header h3 {
+  margin: 0 0 0.15rem;
+  font-size: 1rem;
+}
+
+.board-card-student {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(235, 221, 255, 0.96);
+}
+
+.board-card-email {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.board-status {
+  padding: 0.16rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.board-status-ok {
+  background: rgba(116, 255, 194, 0.16);
+  color: #c6ffe6;
+}
+
+.board-status-entregado {
+  background: rgba(255, 214, 120, 0.16);
+  color: #ffe8ae;
+}
+
+.board-status-leido {
+  background: rgba(156, 252, 255, 0.18);
+  color: #c4f9ff;
+}
+
+.board-status-warn {
+  background: rgba(255, 120, 170, 0.16);
+  color: #ffd3ec;
+}
+
+.board-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.board-section {
+  padding: 0.55rem 0.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.board-section:first-of-type {
+  border-top: none;
+}
+
+.board-section h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff7ff;
+}
+
+.board-meta {
+  margin: 0.05rem 0;
+  font-size: 0.82rem;
+  color: rgba(233, 218, 255, 0.96);
+}
+
+.board-meta.muted {
+  color: rgba(200, 184, 230, 0.8);
+}
+
+.board-file-link {
+  display: inline-flex;
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  color: #9cf3ff;
+}
+
+.board-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.4rem;
+}
+
+.board-score-input {
+  max-width: 80px;
+}
+
+.board-comment-input {
+  width: 100%;
+}
+
+.board-card-footer {
+  margin-top: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.board-card-meta {
+  font-size: 0.78rem;
+  color: rgba(225, 212, 255, 0.9);
+}
+
+/* ==============================
+   Bloque IA en tablero docente
+   ============================== */
+
+.board-ia-section {
+  margin-top: 0.2rem;
+}
+
+.board-ia-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.board-ia-header h4 {
+  margin: 0;
+}
+
+.board-ia-toggle {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+}
+
+.board-ia-body {
+  margin-top: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(144, 94, 255, 0.22), rgba(10, 6, 32, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.board-ia-level + .board-ia-level {
+  margin-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.5rem;
+}
+
+.board-ia-level-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #fef6ff;
+}
+
+.board-ia-questions-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.board-ia-question {
+  margin-bottom: 0.55rem;
+}
+
+.board-ia-question-prompt {
+  margin: 0 0 0.15rem;
+  font-size: 0.87rem;
+  font-weight: 500;
+  color: #fff7ff;
+}
+
+.board-ia-answer-box {
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  background: rgba(8, 5, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.board-ia-answer-box p {
+  margin: 0 0 0.18rem;
+  font-size: 0.8rem;
+  color: rgba(235, 222, 255, 0.96);
+}
+
+.board-ia-answer-box p:last-child {
+  margin-bottom: 0;
+}
+
+.board-ia-meta {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+/* ==============================
+   Asignación de lecturas - selector de estudiantes
+   ============================== */
+
+.reading-assign-students {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.student-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(13, 4, 40, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.student-chip input {
+  accent-color: #ff2fb9; /* tu magenta */
+}
+
+.student-chip-name {
+  color: #fef6ff;
+}
+
+.student-chip-email {
+  opacity: 0.82;
+  font-size: 0.75rem;
+}
+
+.student-chip.is-selected {
+  box-shadow: 0 0 0 1px rgba(255, 0, 180, 0.55);
+  background: radial-gradient(
+    circle at top,
+    rgba(255, 47, 185, 0.25),
+    rgba(13, 4, 40, 0.95)
+  );
 }

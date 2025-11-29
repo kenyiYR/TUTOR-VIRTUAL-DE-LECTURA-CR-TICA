@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listMyReadings, uploadReading } from "../../services/readings.js";
 import { assignReading } from "../../services/assignments.js";
+import { listAssignableStudents } from "../../services/teacher.js";
 import { Link } from "react-router-dom";
 import "../../styles/panel.css";
 
@@ -16,7 +17,8 @@ export default function LecturasDocente() {
 
   // asignar
   const [assignOpen, setAssignOpen] = useState(null); // readingId abierto
-  const [studentIds, setStudentIds] = useState(""); // IDs separados por coma
+  const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);; // IDs separados por coma
   const [due, setDue] = useState("");
   const [expanded, setExpanded] = useState({});
 
@@ -32,8 +34,19 @@ export default function LecturasDocente() {
     }
   }
 
-  useEffect(() => {
+    async function loadStudents() {
+    try {
+      const data = await listAssignableStudents();
+      setStudents(data || []);
+    } catch (e) {
+      setMsg(e.message || "No se pudieron cargar los estudiantes");
+    }
+  }
+
+
+   useEffect(() => {
     load();
+    loadStudents();
   }, []);
 
   async function onUpload(e) {
@@ -53,23 +66,28 @@ export default function LecturasDocente() {
     }
   }
 
-  async function onAssign(readingId) {
-    const ids = studentIds
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!ids.length) return setMsg("Ingresa al menos 1 ID de estudiante");
+    async function onAssign(readingId) {
+    if (!selectedStudents.length) {
+      setMsg("Selecciona al menos un estudiante.");
+      return;
+    }
 
     try {
-      await assignReading({ readingId, studentIds: ids, dueDate: due || undefined });
+      await assignReading({
+        readingId,
+        studentIds: selectedStudents,
+        dueDate: due || undefined
+      });
+
       setMsg("Asignación creada ✅");
       setAssignOpen(null);
-      setStudentIds("");
+      setSelectedStudents([]);
       setDue("");
     } catch (e) {
-      setMsg(e.message);
+      setMsg(e.message || "No se pudo crear la asignación.");
     }
   }
+
 
   return (
     <div className="page-wrap readings-page">
@@ -226,18 +244,46 @@ export default function LecturasDocente() {
       {isAssign && (
         <div className="reading-assign">
           <p className="help-text">
-            Ingresa IDs de estudiantes separados por coma. Es una
-            versión rápida para pruebas; luego se cambiará a selector
-            por correo.
+            Selecciona los estudiantes a los que quieres asignar esta lectura.
           </p>
 
-          <div className="reading-assign-row">
-            <input
-              className="input"
-              placeholder="64fa..., 64fb..., 64fc..."
-              value={studentIds}
-              onChange={(e) => setStudentIds(e.target.value)}
-            />
+          {students.length === 0 ? (
+            <p className="help-text">
+              No hay estudiantes registrados todavía.
+            </p>
+          ) : (
+            <div className="reading-assign-students">
+              {students.map((s) => {
+                const checked = selectedStudents.includes(s._id);
+                return (
+                  <label
+                    key={s._id}
+                    className={
+                      "student-chip" + (checked ? " is-selected" : "")
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        setSelectedStudents((prev) =>
+                          e.target.checked
+                            ? [...prev, s._id]
+                            : prev.filter((id) => id !== s._id)
+                        );
+                      }}
+                    />
+                    <span className="student-chip-name">{s.nombre}</span>
+                    <span className="student-chip-email">
+                      ({s.email})
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="reading-assign-row" style={{ marginTop: "0.75rem" }}>
             <input
               className="input date"
               type="date"
@@ -257,6 +303,7 @@ export default function LecturasDocente() {
           </div>
         </div>
       )}
+
     </article>
   );
 })}

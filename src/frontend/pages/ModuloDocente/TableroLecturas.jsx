@@ -8,58 +8,182 @@ import {
 } from "../../services/assignments.js";
 import "../../styles/panel.css";
 
+function TeacherIAReview({ assignment }) {
+  const questions = assignment.questions;
+  const answers = Array.isArray(assignment.answers) ? assignment.answers : [];
+
+  // Si no hay preguntas o la IA no terminó, no mostramos nada
+  if (!questions || questions.status !== "ready") return null;
+
+  const { literal = [], inferential = [], critical = [] } = questions;
+
+  const totalQuestions =
+    (literal?.length || 0) +
+    (inferential?.length || 0) +
+    (critical?.length || 0);
+
+  if (!totalQuestions) return null;
+
+  const answeredCount = answers.length;
+  const [expanded, setExpanded] = useState(false);
+
+  const groups = [
+    { key: "literal", title: "Nivel literal", items: literal },
+    { key: "inferential", title: "Nivel inferencial", items: inferential },
+    {
+      key: "critical",
+      title: "Nivel crítico (sesgos y falacias)",
+      items: critical,
+    },
+  ];
+
+  return (
+    <section className="board-section board-ia-section">
+      <div className="board-ia-header">
+        <h4>Respuestas y feedback de la IA</h4>
+        <button
+          type="button"
+          className="btn-ghost board-ia-toggle"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? "Ocultar" : "Ver detalle"}
+        </button>
+      </div>
+
+      <p className="board-meta">
+        {totalQuestions} pregunta{totalQuestions !== 1 ? "s" : ""} generada
+        {totalQuestions !== 1 ? "s" : ""} · {answeredCount} respondida
+        {answeredCount !== 1 ? "s" : ""}.
+      </p>
+
+      {expanded && (
+        <div className="board-ia-body">
+          {groups.map((group) => {
+            if (!group.items || group.items.length === 0) return null;
+
+            return (
+              <div key={group.key} className="board-ia-level">
+                <p className="board-ia-level-title">{group.title}</p>
+                <ol className="board-ia-questions-list">
+                  {group.items.map((q, idx) => {
+                    const qId = q.id || q._id;
+                    const ans = answers.find(
+                      (a) => a.questionId === qId
+                    );
+
+                    return (
+                      <li
+                        key={qId || `${group.key}-${idx}`}
+                        className="board-ia-question"
+                      >
+                        <p className="board-ia-question-prompt">
+                          {q.prompt}
+                        </p>
+
+                        {ans ? (
+                          <div className="board-ia-answer-box">
+                            <p>
+                              <b>Respuesta del estudiante:</b>{" "}
+                              {ans.answer}
+                            </p>
+                            <p>
+                              <b>Feedback de la IA:</b>{" "}
+                              {ans.feedbackText || "—"}
+                            </p>
+                            <p className="board-ia-meta">
+                              Puntaje: {ans.score ?? "—"} · Veredicto:{" "}
+                              {ans.verdict || "—"}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="board-meta muted">
+                            Sin respuesta registrada para esta pregunta.
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function TableroLecturas() {
   const [readings, setReadings] = useState([]);
   const [readingId, setReadingId] = useState("");
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setReadings(await listMyReadings());
-      } catch (e) {
-        console.error(e);
-        setMsg(e.message);
-      }
-    })();
-  }, []);
-
-  async function load() {
-    setLoading(true);
-    setMsg("");
+  // Cargar lecturas del docente (para el filtro)
+  async function loadReadings() {
     try {
-      const data = await listTeacherBoard(readingId || undefined);
-      setItems(data);
+      const data = await listMyReadings();
+      setReadings(data || []);
     } catch (e) {
       console.error(e);
-      setMsg(e.message);
+      setMsg(e.message || "No se pudieron cargar las lecturas.");
+    }
+  }
+
+  // Cargar tablero (asignaciones) según filtro
+  async function loadBoard() {
+    setLoading(true);
+    try {
+      const data = await listTeacherBoard(readingId || undefined);
+      setItems(data || []);
+      setMsg("");
+    } catch (e) {
+      console.error(e);
+      setMsg(e.message || "No se pudo cargar el tablero.");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    load();
+    loadReadings();
+  }, []);
+
+  useEffect(() => {
+    loadBoard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readingId]);
 
   async function onFeedback(id, idx) {
-    const text =
-      document.getElementById(`fb_txt_${id}`)?.value?.trim() || "";
-    const score =
-      document.getElementById(`fb_score_${id}`)?.value?.trim() || "";
+    const scoreEl = document.getElementById(`fb_score_${id}`);
+    const textEl = document.getElementById(`fb_txt_${id}`);
+
+    const scoreRaw = scoreEl?.value?.trim() || "";
+    const text = textEl?.value?.trim() || "";
+
+    if (!text && !scoreRaw) {
+      setMsg("Escribe un comentario o un puntaje antes de enviar.");
+      return;
+    }
 
     try {
-      const fb = await sendFeedback(id, { text, score });
-      const next = [...items];
-      next[idx].feedback = fb;
-      setItems(next);
+      const saved = await sendFeedback(id, {
+        text,
+        score: scoreRaw,
+      });
+
+      setItems((prev) => {
+        const next = [...prev];
+        const a = { ...next[idx], feedback: saved };
+        next[idx] = a;
+        return next;
+      });
+
       setMsg("Feedback enviado ✅");
     } catch (e) {
       console.error(e);
-      setMsg(e.message);
+      setMsg(e.message || "No se pudo enviar el feedback.");
     }
   }
 
@@ -79,8 +203,8 @@ export default function TableroLecturas() {
         <div>
           <h3>Tablero de lecturas</h3>
           <p className="section-subtitle">
-            Revisa lo que han leído tus estudiantes, su estado de entrega
-            y envía feedback sin salir de esta vista.
+            Revisa qué han leído tus estudiantes, su estado de entrega,
+            las respuestas que han enviado a la IA y envía feedback desde un solo lugar.
           </p>
         </div>
 
@@ -88,20 +212,24 @@ export default function TableroLecturas() {
           <button
             type="button"
             className="btn-outline"
-            onClick={load}
+            onClick={loadBoard}
           >
-            Actualizar
+            Recargar
           </button>
-          <Link to="/docente/lecturas" className="link-btn">
-            ← Volver a lecturas
+
+          <Link
+            to="/docente/lecturas"
+            className="btn-secondary"
+          >
+            Asignar nuevas lecturas
           </Link>
         </div>
       </div>
 
-      <div className="panel-wrap board-panel">
-        {/* Filtro de lecturas */}
-        <section className="card board-filter-card">
-          <div className="board-filter-top">
+      <div className="panel-wrap">
+        {/* Filtros superiores */}
+        <section className="board-filters">
+          <div className="board-filter-col">
             <div>
               <label
                 htmlFor="readingFilter"
@@ -131,11 +259,7 @@ export default function TableroLecturas() {
               ))}
             </select>
 
-            {msg && (
-              <span className="board-message">
-                {msg}
-              </span>
-            )}
+            {msg && <span className="board-message">{msg}</span>}
           </div>
         </section>
 
@@ -160,74 +284,108 @@ export default function TableroLecturas() {
                 const statusClass = `board-status board-status-${st.tone}`;
 
                 return (
-                  <article
-                    key={a._id}
-                    className="card board-card"
-                  >
+                  <article key={a._id} className="card board-card">
                     <header className="board-card-header">
                       <div>
-                        <h3>
-                          {a.reading?.titulo || "Lectura"}
-                        </h3>
+                        <h3>{a.reading?.titulo || "Lectura"}</h3>
                         <p className="board-card-student">
-                          <span className="label">
-                            Estudiante:
-                          </span>{" "}
-                          {a.student?.nombre || "Sin nombre"}
-                          {a.student?.email && (
-                            <span className="board-card-email">
-                              {" "}
-                              · {a.student.email}
-                            </span>
-                          )}
+                          <span className="label">Estudiante:</span>{" "}
+                          {a.student?.nombre || "—"}{" "}
+                          <span className="board-card-email">
+                            ({a.student?.email || "sin correo"})
+                          </span>
                         </p>
                       </div>
-                      <span className={statusClass}>
-                        {st.label}
-                      </span>
+
+                      <span className={statusClass}>{st.label}</span>
                     </header>
 
                     <div className="board-card-body">
-                      <div className="board-field-row">
-                        <label
-                          htmlFor={`fb_score_${a._id}`}
-                        >
-                          Puntaje
-                        </label>
-                        <input
-                          id={`fb_score_${a._id}`}
-                          className="input board-score-input"
-                          placeholder="Ej. 18"
-                          defaultValue={
-                            a.feedback?.score ?? ""
-                          }
-                        />
-                      </div>
+                      {/* Bloque: Entrega del estudiante */}
+                      <section className="board-section">
+                        <h4>Entrega del estudiante</h4>
 
-                      <div className="board-field-row">
-                        <label
-                          htmlFor={`fb_txt_${a._id}`}
-                        >
-                          Comentario
-                        </label>
-                        <input
-                          id={`fb_txt_${a._id}`}
-                          className="input"
-                          placeholder="Comentario para el estudiante"
-                          defaultValue={
-                            a.feedback?.text ?? ""
-                          }
-                        />
-                      </div>
+                        {a.submission?.at ? (
+                          <>
+                            <p className="board-meta">
+                              Entregado el{" "}
+                              {new Date(
+                                a.submission.at
+                              ).toLocaleString()}
+                            </p>
+
+                            {a.submissionUrl && (
+                              <a
+                                href={a.submissionUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="board-file-link"
+                              >
+                                Ver archivo enviado
+                              </a>
+                            )}
+
+                            {a.submission?.notes && (
+                              <p className="board-meta">
+                                <b>Notas del estudiante:</b>{" "}
+                                {a.submission.notes}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="board-meta muted">
+                            Aún no hay entrega registrada para esta asignación.
+                          </p>
+                        )}
+                      </section>
+
+                      {/* Bloque: Respuestas IA + feedback */}
+                      <TeacherIAReview assignment={a} />
+
+                      {/* Bloque: Feedback del docente */}
+                      <section className="board-section">
+                        <h4>Feedback del docente</h4>
+
+                        <div className="board-field-row">
+                          <label htmlFor={`fb_score_${a._id}`}>
+                            Puntaje
+                          </label>
+                          <input
+                            id={`fb_score_${a._id}`}
+                            className="input board-score-input"
+                            placeholder="Ej. 18"
+                            defaultValue={a.feedback?.score ?? ""}
+                          />
+                        </div>
+
+                        <div className="board-field-row">
+                          <label htmlFor={`fb_txt_${a._id}`}>
+                            Comentario
+                          </label>
+                          <input
+                            id={`fb_txt_${a._id}`}
+                            className="input board-comment-input"
+                            placeholder="Comentario para el estudiante"
+                            defaultValue={a.feedback?.text ?? ""}
+                          />
+                        </div>
+
+                        {a.feedback?.at && (
+                          <p className="board-card-meta">
+                            Última actualización:{" "}
+                            {new Date(
+                              a.feedback.at
+                            ).toLocaleString()}
+                          </p>
+                        )}
+                      </section>
                     </div>
 
                     <footer className="board-card-footer">
                       <button
                         type="button"
                         className="btn-primary btn-sm"
-                        onClick={() =>
-                          onFeedback(a._id, idx)
-                        }
+                        onClick={() => onFeedback(a._id, idx)}
                       >
                         Enviar feedback
                       </button>

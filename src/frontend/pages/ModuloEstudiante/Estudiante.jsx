@@ -23,23 +23,36 @@ export default function Estudiante() {
   const [saving, setSaving] = useState(false);
 
   const storageKey = user?._id
-    ? `tvlc_student_profile_${user._id}`
-    : "tvlc_student_profile";
+  ? `tvlc_student_profile_${user._id}`
+  : null;
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!storageKey) return; // todavía no hay usuario cargado
+
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
+        // Siempre partimos de EMPTY_PROFILE para no arrastrar datos de otro
         setForm({ ...EMPTY_PROFILE, ...parsed });
-      } else if (user?.email) {
-        setForm((prev) => ({ ...prev, contacto: user.email }));
+      } else {
+        // Perfil nuevo para este estudiante: vacío pero con su correo
+        setForm({
+          ...EMPTY_PROFILE,
+          contacto: user?.email || "",
+        });
       }
     } catch {
-      /* ignore */
+      // Si algo falla leyendo JSON, dejamos el perfil limpio
+      setForm({
+        ...EMPTY_PROFILE,
+        contacto: user?.email || "",
+      });
     }
-  }, [storageKey, user]);
+  }, [storageKey, user?.email]);
+
 
   function setField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
