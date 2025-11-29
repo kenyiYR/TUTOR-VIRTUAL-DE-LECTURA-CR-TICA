@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import TeacherProfile from '../models/TeacherProfile.js';
+import User from '../models/User.js';
 
 const profileSchema = z.object({
   especialidad: z.string().trim().max(120).optional().or(z.literal('')),
@@ -37,4 +38,17 @@ export async function updateMyProfile(req, res, next) {
     ).lean();
     res.json({ ok:true, profile: prof });
   } catch (e) { next(e); }
+}
+
+export async function listAssignableStudents(req, res, next) {
+  try {
+    const students = await User.find({ rol: 'estudiante' })
+      .select('nombre email')
+      .sort({ nombre: 1 })
+      .lean();
+
+    res.json({ ok: true, students });
+  } catch (e) {
+    next(e);
+  }
 }

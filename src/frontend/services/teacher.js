@@ -22,3 +22,13 @@ export async function updateMyTeacherProfile(payload){
   if (!r.ok) throw new Error(d.error || 'No se pudo actualizar');
   return d.profile;
 }
+
+export async function listAssignableStudents() {
+  const t = getToken();
+  const r = await fetch(`${BASE}/api/teacher/students/assignable`, {
+    headers: H(t)
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'No se pudieron cargar estudiantes');
+  return d.students;
+}

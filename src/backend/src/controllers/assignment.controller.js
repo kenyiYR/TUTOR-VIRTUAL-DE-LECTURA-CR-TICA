@@ -197,13 +197,35 @@ export async function listTeacherBoard(req, res, next) {
     if (readingId) filter.reading = readingId;
 
     const docs = await Assignment.find({ assignedBy: req.userId, ...filter })
-      .populate('student', 'nombre email')
-      .populate('reading', 'titulo')
-      .sort({ createdAt: -1 }).lean();
+      .populate("student", "nombre email")
+      .populate("reading", "titulo descripcion")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ ok:true, items: docs });
-  } catch (e) { next(e); }
+    // Enriquecemos cada asignación con la URL pública del archivo entregado (si existe)
+    const items = docs.map((doc) => {
+      const item = { ...doc };
+
+      if (item.submission?.bucket && item.submission?.objectPath) {
+        try {
+          item.submissionUrl = publicUrl({
+            bucket: item.submission.bucket,
+            path: item.submission.objectPath,
+          });
+        } catch {
+          item.submissionUrl = null;
+        }
+      }
+
+      return item;
+    });
+
+    res.json({ ok: true, items });
+  } catch (e) {
+    next(e);
+  }
 }
+
 
 const answerSchema = z.object({
   questionId: z.string().min(1),
