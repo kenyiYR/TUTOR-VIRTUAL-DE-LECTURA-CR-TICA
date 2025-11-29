@@ -1,57 +1,60 @@
 // src/frontend/pages/ModuloEstudiante/__tests__/Asignaciones.test.jsx
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Asignaciones from "../Asignaciones.jsx";
 import { renderWithRouter } from "../../../tests/test-utils.jsx";
 import * as svc from "../../../services/assignments.js";
 
+// Mock del servicio de asignaciones
 jest.mock("../../../services/assignments.js", () => ({
-  listMyAssignments: jest.fn().mockResolvedValue([
-    { _id: "a1", titulo: "Lectura A", readAt: null, dueDate: null }
-  ]),
-  toggleRead: jest.fn().mockResolvedValue(new Date().toISOString()),
-  submitWork: jest.fn().mockResolvedValue({ ok: true })
+  listMyAssignments: jest.fn(),
+  toggleRead: jest.fn(),
+  submitWork: jest.fn(),
+  answerQuestion: jest.fn()
 }));
 
-describe("Asignaciones", () => {
+const mockAssignments = [
+  {
+    _id: "a1",
+    reading: {
+      titulo: "Lectura A",
+      descripcion: "Descripción de prueba"
+    },
+    readAt: null,
+    questions: {
+      status: "pending" // así se muestra "IA: generando preguntas..."
+    },
+    submission: null,
+    feedback: null
+  }
+];
+
+describe("Asignaciones (módulo estudiante)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    svc.listMyAssignments.mockResolvedValue(mockAssignments);
   });
 
-  test("muestra error al enviar sin archivo", async () => {
-    // lista con un item; el título no es fiable en la UI, así que no lo usaremos para esperar
-    svc.listMyAssignments.mockResolvedValue([
-      { _id: "a1", titulo: "Lectura A", readAt: null, dueDate: null }
-    ]);
-
+  test("muestra lecturas con el botón de detalle", async () => {
     renderWithRouter(<Asignaciones />);
 
-    // espera algo estable del card: el botón "Marcar como leído" existe cuando el item cargó
-    await screen.findByRole("button", { name: /marcar como leído/i });
+    // Título principal de la página
+    await screen.findByText(/lecturas asignadas/i);
 
-    // intenta enviar sin archivo
-    const enviar = screen.getByRole("button", { name: /enviar/i });
-    await userEvent.click(enviar);
+    // Botón principal de la tarjeta
+    const detalle = await screen.findByRole("button", {
+      name: /ver detalle de la asignación/i
+    });
 
-    // comportamiento robusto: SIN archivo no debe llamarse el servicio
-    await waitFor(() => expect(svc.submitWork).not.toHaveBeenCalled());
-
-    // si tu componente muestra un mensaje, podrías checarlo de forma flexible:
-    // const msg = screen.queryByText((t, n) => (n?.textContent || "").toLowerCase().includes("archivo"));
-    // if (msg) expect(msg).toBeInTheDocument();
+    expect(detalle).toBeInTheDocument();
   });
 
-  test("marca como leído llama al servicio", async () => {
-    svc.listMyAssignments.mockResolvedValue([
-      { _id: "a1", titulo: "Lectura A", readAt: null, dueDate: null }
-    ]);
-    svc.toggleRead.mockResolvedValue(new Date().toISOString());
-
+  test("muestra el estado de la IA en la tarjeta", async () => {
     renderWithRouter(<Asignaciones />);
 
-    const marcar = await screen.findByRole("button", { name: /marcar como leído/i });
-    await userEvent.click(marcar);
+    // Para status 'pending' el texto es "IA: generando preguntas..."
+    const iaText = await screen.findByText(/ia:\s*generando preguntas/i);
 
-    expect(svc.toggleRead).toHaveBeenCalledWith("a1");
+    expect(iaText).toBeInTheDocument();
   });
 });
