@@ -21,6 +21,7 @@ import Perfil from "./frontend/pages/PerfilUsuario/Perfil.jsx";
 import LecturasDocente from "./frontend/pages/ModuloDocente/Lecturas.jsx";
 import TableroLecturas from "./frontend/pages/ModuloDocente/TableroLecturas.jsx";
 import AsignacionesAlumno from "./frontend/pages/ModuloEstudiante/Asignaciones.jsx";
+import ReportesDocente from "./frontend/pages/ModuloDocente/Reportes.jsx";
 
 export default function App() {
   return (
@@ -57,6 +58,15 @@ export default function App() {
               }/>
 
               <Route
+  path="/docente/reportes"
+  element={
+    <ProtectedRoute role="docente">
+      <ReportesDocente />
+    </ProtectedRoute>
+  }
+/>
+
+              <Route
     path="/estudiante/lecturas/:assignmentId"
     element={
       <ProtectedRoute role="estudiante">
@@ -71,10 +81,6 @@ export default function App() {
 
 
           {/* otras rutas pueden requerir login global si quieres; aquí las dejamos públicas */}
-          <Route path="/ia" element={<IA />} />
-          <Route path="/automatizacion" element={<Automatizacion />} />
-          <Route path="/gamificacion" element={<Gamificacion />} />
-          <Route path="/contacto" element={<Contacto />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
