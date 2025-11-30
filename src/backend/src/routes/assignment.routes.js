@@ -3,8 +3,9 @@ import { authRequired } from '../middlewares/auth.js';
 import { requireRole } from '../middlewares/roles.js';
 import {
   upload, assignReading, listMyAssignmentsStudent, toggleRead,
-  submitWork, sendFeedback, listTeacherBoard, answerQuestion
+  submitWork, sendFeedback, listTeacherBoard, answerQuestion, getReminderCandidates,
 } from '../controllers/assignment.controller.js';
+import { systemAuth } from "../middlewares/systemAuth.js";
 
 const r = Router();
 
@@ -19,5 +20,7 @@ r.patch('/:id/read', authRequired, toggleRead);
 r.post('/:id/submit', authRequired, upload.single('file'), submitWork);
 
 r.post('/:id/answer', authRequired, answerQuestion);
+
+r.get("/system/reminder-candidates", systemAuth, getReminderCandidates);
 
 export default r;

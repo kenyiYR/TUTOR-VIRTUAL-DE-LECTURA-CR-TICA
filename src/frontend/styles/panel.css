@@ -1719,3 +1719,187 @@
     rgba(13, 4, 40, 0.95)
   );
 }
+
+/* ===== Layout general del panel de reportes ===== */
+
+.panel-wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  color: #f8e9ff;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.panel-header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.panel-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: rgba(230, 215, 255, 0.75);
+}
+
+.panel-grid.panel-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ===== Cards métricas ===== */
+
+.panel-card {
+  background: radial-gradient(circle at top left,
+      rgba(255, 64, 171, 0.18),
+      rgba(7, 0, 25, 0.98)
+    );
+  border-radius: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 64, 171, 0.35);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(80, 15, 120, 0.65);
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(236, 220, 255, 0.85);
+}
+
+.metric-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #ff52c4;
+  text-shadow:
+    0 0 16px rgba(255, 82, 196, 0.7),
+    0 0 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ===== Card de la tabla ===== */
+
+.panel-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+}
+
+.panel-card > .text-muted {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: rgba(222, 210, 255, 0.8);
+}
+
+/* ===== Tabla custom (modo dark) ===== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-top: 4px;
+}
+
+.table-custom thead {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 64, 171, 0.3),
+    rgba(90, 30, 160, 0.9)
+  );
+}
+
+.table-custom th,
+.table-custom td {
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.table-custom th {
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #ffe9ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table-custom tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.table-custom tbody tr:nth-child(odd) {
+  background: rgba(15, 0, 40, 0.85);
+}
+
+.table-custom tbody tr:nth-child(even) {
+  background: rgba(10, 0, 32, 0.9);
+}
+
+.table-custom tbody tr:hover {
+  background: radial-gradient(circle at left,
+      rgba(255, 64, 171, 0.32),
+      rgba(8, 0, 28, 0.95)
+    );
+}
+
+.table-custom td {
+  color: #f2e6ff;
+}
+
+.table-custom td:nth-child(4) {
+  font-weight: 600;
+  color: #ff75d0;
+}
+
+/* ===== Textos auxiliares ===== */
+
+.text-muted {
+  color: rgba(210, 200, 255, 0.75) !important;
+}
+
+.text-danger {
+  color: #ff7ab8 !important;
+}
+
+/* Botón actualizar versión dark */
+.btn.gray {
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(35, 20, 60, 0.9);
+  color: #f4e9ff;
+  font-size: 0.82rem;
+}
+
+.btn.gray:hover:not(:disabled) {
+  background: rgba(60, 35, 100, 0.95);
+  border-color: rgba(255, 64, 171, 0.7);
+  color: #ffffff;
+}
+
+/* Texto explicativo bajo el título de la tabla */
+.panel-hint {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: #f3dcff;                /* mucho más claro */
+  opacity: 0.95;
+}

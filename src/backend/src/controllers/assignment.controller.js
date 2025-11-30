@@ -4,28 +4,47 @@ import crypto from 'node:crypto';
 import Assignment from '../models/Assignment.js';
 import Reading from '../models/Reading.js';
 import { uploadBuffer, publicUrl } from '../lib/storage.service.js';
-import { generateReadingQuestions, evaluateAnswer } from "../lib/ai.service.js";
-import { getReadingText } from "../lib/reading-text.service.js";
+import { generateReadingQuestions, evaluateAnswer } from '../lib/ai.service.js';
+import { getReadingText } from '../lib/reading-text.service.js';
 
-const IS_TEST_ENV = process.env.NODE_ENV === "test";
+const IS_TEST_ENV = process.env.NODE_ENV === 'test';
 
-export const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+export const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
 
-// Acepta studentId o studentIds. Al menos uno es requerido.
+// Acepta studentIds (array). Al menos uno es requerido.
+// dueDate puede venir vacío o como string "YYYY-MM-DD" (o cualquier fecha parseable por Date.parse).
 const assignSchema = z.object({
-  readingId: z.string(),
-  studentId: z.string().optional(),
-  studentIds: z.array(z.string()).min(1).optional(),
-  dueDate: z.string().datetime().optional()
-}).refine(d => d.studentId || (d.studentIds && d.studentIds.length > 0), {
-  message: 'studentId(s) requerido'
+  readingId: z.string().min(1, 'readingId requerido'),
+  studentIds: z.array(z.string()).min(1, 'Debe haber al menos un estudiante'),
+  dueDate: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (v) => {
+        // permitir vacío o null
+        if (!v) return true;
+        return !Number.isNaN(Date.parse(v));
+      },
+      { message: 'Fecha inválida' }
+    )
 });
 
 export async function assignReading(req, res, next) {
   try {
     const payload = assignSchema.parse(req.body);
-    const { readingId, dueDate } = payload;
-    const studentIds = payload.studentIds ?? (payload.studentId ? [payload.studentId] : []);
+    const { readingId } = payload;
+    const studentIds =
+      payload.studentIds ?? (payload.studentId ? [payload.studentId] : []);
+
+    // Parseamos dueDate a Date (o lo dejamos undefined si no viene)
+    const parsedDueDate =
+      payload.dueDate && !Number.isNaN(Date.parse(payload.dueDate))
+        ? new Date(payload.dueDate)
+        : undefined;
 
     // Solo docentes asignan. Los tests te setean req.user.rol.
     if (!req.user || req.user.rol !== 'docente') {
@@ -34,19 +53,26 @@ export async function assignReading(req, res, next) {
 
     const reading = await Reading.findById(readingId);
     if (!reading) {
-      return res.status(404).json({ ok: false, error: 'Lectura no encontrada' });
+      return res
+        .status(404)
+        .json({ ok: false, error: 'Lectura no encontrada' });
     }
 
     // Caso 1 alumno: crea y devuelve 201 + assignment (con status)
     if (studentIds.length === 1) {
-      const created = await Assignment.create({
-        reading:    reading._id,
-        student:    studentIds[0],
+      const baseData = {
+        reading: reading._id,
+        student: studentIds[0],
         assignedBy: req.user.id ?? req.userId,
-        dueDate,
-        status:     'assigned',   // status global de la asignación
+        status: 'assigned' // status global de la asignación
         // questions: se llena con el default "pending" del schema
-      });
+      };
+
+      if (parsedDueDate) {
+        baseData.dueDate = parsedDueDate;
+      }
+
+      const created = await Assignment.create(baseData);
 
       // IA en background (no en entorno de test)
       if (!IS_TEST_ENV) {
@@ -55,7 +81,10 @@ export async function assignReading(req, res, next) {
           reading,
           assignments: [created]
         }).catch((err) => {
-          console.error("[AssignmentsController] Error background IA (1 alumno):", err?.message || err);
+          console.error(
+            '[AssignmentsController] Error background IA (1 alumno):',
+            err?.message || err
+          );
         });
       }
 
@@ -63,21 +92,28 @@ export async function assignReading(req, res, next) {
     }
 
     // Batch para varios alumnos: upsert y estadísticos
-    const ops = studentIds.map(student => ({
-      updateOne: {
-        filter: { reading: reading._id, student },
-        update: {
-          $setOnInsert: {
-            reading:    reading._id,
-            student,
-            assignedBy: req.user.id ?? req.userId,
-            dueDate,
-            status:     'assigned'
-          }
-        },
-        upsert: true
+    const ops = studentIds.map((student) => {
+      const setOnInsert = {
+        reading: reading._id,
+        student,
+        assignedBy: req.user.id ?? req.userId,
+        status: 'assigned'
+      };
+
+      if (parsedDueDate) {
+        setOnInsert.dueDate = parsedDueDate;
       }
-    }));
+
+      return {
+        updateOne: {
+          filter: { reading: reading._id, student },
+          update: {
+            $setOnInsert: setOnInsert
+          },
+          upsert: true
+        }
+      };
+    });
 
     const result = await Assignment.bulkWrite(ops, { ordered: false });
 
@@ -89,12 +125,15 @@ export async function assignReading(req, res, next) {
         reading: reading._id,
         student: { $in: studentIds }
       })
-        .then(assignments => {
+        .then((assignments) => {
           if (!assignments || assignments.length === 0) return;
           return generateQuestionsForAssignments({ reading, assignments });
         })
-        .catch(err => {
-          console.error("[AssignmentsController] Error background IA (batch):", err?.message || err);
+        .catch((err) => {
+          console.error(
+            '[AssignmentsController] Error background IA (batch):',
+            err?.message || err
+          );
         });
     }
 
@@ -102,7 +141,7 @@ export async function assignReading(req, res, next) {
       ok: true,
       stats: {
         upserted: result.upsertedCount,
-        matched:  result.matchedCount,
+        matched: result.matchedCount,
         modified: result.modifiedCount
       }
     });
@@ -111,50 +150,78 @@ export async function assignReading(req, res, next) {
   }
 }
 
-
 export async function listMyAssignmentsStudent(req, res, next) {
   try {
     const docs = await Assignment.find({ student: req.userId })
       .populate('reading', 'titulo descripcion bucket objectPath createdBy')
-      .sort({ createdAt: -1 }).lean();
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const mapped = docs.map(a => ({
+    const mapped = docs.map((a) => ({
       ...a,
       reading: {
         ...a.reading,
-        url: publicUrl({ bucket: a.reading.bucket, path: a.reading.objectPath })
+        url: publicUrl({
+          bucket: a.reading.bucket,
+          path: a.reading.objectPath
+        })
       },
-      status: a.feedback?.at ? 'revisado' : a.submission?.at ? 'entregado' : a.readAt ? 'leido' : 'pendiente'
+      status: a.feedback?.at
+        ? 'revisado'
+        : a.submission?.at
+        ? 'entregado'
+        : a.readAt
+        ? 'leido'
+        : 'pendiente'
     }));
 
-    res.json({ ok:true, assignments: mapped });
-  } catch (e) { next(e); }
+    res.json({ ok: true, assignments: mapped });
+  } catch (e) {
+    next(e);
+  }
 }
 
 export async function toggleRead(req, res, next) {
   try {
     const id = req.params.id;
     const a = await Assignment.findOne({ _id: id, student: req.userId });
-    if (!a) return res.status(404).json({ ok:false, error:'Asignación no encontrada' });
+    if (!a)
+      return res
+        .status(404)
+        .json({ ok: false, error: 'Asignación no encontrada' });
     a.readAt = a.readAt ? null : new Date();
     await a.save();
-    res.json({ ok:true, readAt: a.readAt });
-  } catch (e) { next(e); }
+    res.json({ ok: true, readAt: a.readAt });
+  } catch (e) {
+    next(e);
+  }
 }
 
 export async function submitWork(req, res, next) {
   try {
     const id = req.params.id;
-    const a = await Assignment.findOne({ _id: id, student: req.userId }).populate('reading', 'createdBy');
-    if (!a) return res.status(404).json({ ok:false, error:'Asignación no encontrada' });
+    const a = await Assignment.findOne({
+      _id: id,
+      student: req.userId
+    }).populate('reading', 'createdBy');
+    if (!a)
+      return res
+        .status(404)
+        .json({ ok: false, error: 'Asignación no encontrada' });
 
-    if (!req.file) return res.status(400).json({ ok:false, error:'Archivo requerido' });
-    const ext = req.file.originalname.split('.').pop()?.toLowerCase() || 'bin';
+    if (!req.file)
+      return res
+        .status(400)
+        .json({ ok: false, error: 'Archivo requerido' });
+    const ext =
+      req.file.originalname.split('.').pop()?.toLowerCase() || 'bin';
     const objectPath = `${req.userId}/${a.reading._id}/${crypto.randomUUID()}.${ext}`;
 
     const path = await uploadBuffer({
       bucket: process.env.SUPABASE_BUCKET_TAREAS,
-      path: objectPath, buffer: req.file.buffer, contentType: req.file.mimetype
+      path: objectPath,
+      buffer: req.file.buffer,
+      contentType: req.file.mimetype
     });
 
     a.submission = {
@@ -166,28 +233,38 @@ export async function submitWork(req, res, next) {
       at: new Date()
     };
     await a.save();
-    res.status(201).json({ ok:true, submission: a.submission });
-  } catch (e) { next(e); }
+    res.status(201).json({ ok: true, submission: a.submission });
+  } catch (e) {
+    next(e);
+  }
 }
 
 const feedbackSchema = z.object({
-  text:  z.string().max(1000).optional().or(z.literal('')),
+  text: z.string().max(1000).optional().or(z.literal('')),
   score: z.number().min(0).max(100).optional()
 });
 
 export async function sendFeedback(req, res, next) {
   try {
     const id = req.params.id;
-    const a = await Assignment.findById(id).populate('reading', 'createdBy');
-    if (!a) return res.status(404).json({ ok:false, error:'Asignación no encontrada' });
+    const a = await Assignment.findById(id).populate(
+      'reading',
+      'createdBy'
+    );
+    if (!a)
+      return res
+        .status(404)
+        .json({ ok: false, error: 'Asignación no encontrada' });
     if (String(a.reading.createdBy) !== String(req.userId)) {
-      return res.status(403).json({ ok:false, error:'No autorizado' });
+      return res.status(403).json({ ok: false, error: 'No autorizado' });
     }
     const { text = '', score } = feedbackSchema.parse(req.body);
     a.feedback = { text, score, by: req.userId, at: new Date() };
     await a.save();
-    res.json({ ok:true, feedback: a.feedback });
-  } catch (e) { next(e); }
+    res.json({ ok: true, feedback: a.feedback });
+  } catch (e) {
+    next(e);
+  }
 }
 
 export async function listTeacherBoard(req, res, next) {
@@ -197,8 +274,8 @@ export async function listTeacherBoard(req, res, next) {
     if (readingId) filter.reading = readingId;
 
     const docs = await Assignment.find({ assignedBy: req.userId, ...filter })
-      .populate("student", "nombre email")
-      .populate("reading", "titulo descripcion")
+      .populate('student', 'nombre email')
+      .populate('reading', 'titulo descripcion')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -210,7 +287,7 @@ export async function listTeacherBoard(req, res, next) {
         try {
           item.submissionUrl = publicUrl({
             bucket: item.submission.bucket,
-            path: item.submission.objectPath,
+            path: item.submission.objectPath
           });
         } catch {
           item.submissionUrl = null;
@@ -226,10 +303,9 @@ export async function listTeacherBoard(req, res, next) {
   }
 }
 
-
 const answerSchema = z.object({
   questionId: z.string().min(1),
-  answer: z.string().min(1, "La respuesta no puede estar vacía")
+  answer: z.string().min(1, 'La respuesta no puede estar vacía')
 });
 
 /**
@@ -243,29 +319,44 @@ export async function answerQuestion(req, res, next) {
     const { id } = req.params;
     const payload = answerSchema.parse(req.body);
 
-    if (!req.user || req.user.rol !== "estudiante") {
-      return res.status(403).json({ ok: false, error: "Solo estudiantes pueden responder aquí." });
+    if (!req.user || req.user.rol !== 'estudiante') {
+      return res.status(403).json({
+        ok: false,
+        error: 'Solo estudiantes pueden responder aquí.'
+      });
     }
 
-    const assignment = await Assignment.findById(id).populate("reading", "titulo descripcion");
+    const assignment = await Assignment.findById(id).populate(
+      'reading',
+      'titulo descripcion'
+    );
     if (!assignment) {
-      return res.status(404).json({ ok: false, error: "Asignación no encontrada." });
+      return res.status(404).json({
+        ok: false,
+        error: 'Asignación no encontrada.'
+      });
     }
 
     // Verificar que la asignación pertenece al estudiante autenticado
     if (assignment.student.toString() !== req.userId) {
-      return res.status(403).json({ ok: false, error: "No puedes responder asignaciones de otro usuario." });
+      return res.status(403).json({
+        ok: false,
+        error: 'No puedes responder asignaciones de otro usuario.'
+      });
     }
 
     // Buscar la pregunta dentro de questions.literal/inferential/critical
     const q = findQuestionInAssignment(assignment, payload.questionId);
     if (!q) {
-      return res.status(400).json({ ok: false, error: "Pregunta no encontrada en esta asignación." });
+      return res.status(400).json({
+        ok: false,
+        error: 'Pregunta no encontrada en esta asignación.'
+      });
     }
 
-    const level = q.level || "critical";
+    const level = q.level || 'critical';
     const questionPrompt = q.prompt;
-    const expectedAnswer = q.expectedAnswer || "";
+    const expectedAnswer = q.expectedAnswer || '';
 
     // Llamar a la IA para evaluar la respuesta
     const evalResult = await evaluateAnswer({
@@ -278,7 +369,9 @@ export async function answerQuestion(req, res, next) {
 
     const now = new Date();
     const answers = assignment.answers || [];
-    const idx = answers.findIndex((a) => a.questionId === payload.questionId);
+    const idx = answers.findIndex(
+      (a) => a.questionId === payload.questionId
+    );
 
     const newEntry = {
       questionId: payload.questionId,
@@ -307,7 +400,6 @@ export async function answerQuestion(req, res, next) {
   }
 }
 
-
 /**
  * Genera preguntas con IA para una o varias asignaciones de la misma lectura
  * y las guarda en cada documento.
@@ -316,8 +408,8 @@ export async function answerQuestion(req, res, next) {
  * - Llama a getReadingText (por ahora stub) y luego a generateReadingQuestions.
  *
  * @param {Object} params
- * @param {import("../models/Reading.js").default | any} params.reading
- * @param {import("../models/Assignment.js").default[] | any[]} params.assignments
+ * @param {import('../models/Reading.js').default | any} params.reading
+ * @param {import('../models/Assignment.js').default[] | any[]} params.assignments
  */
 async function generateQuestionsForAssignments({ reading, assignments }) {
   if (!assignments || assignments.length === 0) return;
@@ -333,7 +425,7 @@ async function generateQuestionsForAssignments({ reading, assignments }) {
     // Actualizamos cada assignment con las mismas preguntas (la lectura es la misma)
     for (const assignment of assignments) {
       assignment.questions = {
-        status: "ready",
+        status: 'ready',
         literal: questionsByLevel.literal,
         inferential: questionsByLevel.inferential,
         critical: questionsByLevel.critical
@@ -341,14 +433,18 @@ async function generateQuestionsForAssignments({ reading, assignments }) {
       await assignment.save();
     }
   } catch (err) {
-    console.error("[AssignmentsController] Error generando preguntas IA:", err?.message || err);
+    console.error(
+      '[AssignmentsController] Error generando preguntas IA:',
+      err?.message || err
+    );
 
     // Si algo falla, marcamos cada una como failed
     for (const assignment of assignments) {
       assignment.questions = {
         ...(assignment.questions || {}),
-        status: "failed",
-        error: err?.message || "Error generando preguntas con IA"
+        status: 'failed',
+        error:
+          err?.message || 'Error generando preguntas con IA'
       };
       await assignment.save();
     }
@@ -358,7 +454,8 @@ async function generateQuestionsForAssignments({ reading, assignments }) {
 function findQuestionInAssignment(assignment, questionId) {
   if (!assignment?.questions) return null;
 
-  const { literal = [], inferential = [], critical = [] } = assignment.questions;
+  const { literal = [], inferential = [], critical = [] } =
+    assignment.questions;
 
   const groups = [
     { level: 'literal', arr: literal },
@@ -370,8 +467,7 @@ function findQuestionInAssignment(assignment, questionId) {
     for (const q of arr) {
       // Puede venir de "id" (nuestro), o de "_id" (subdocumento de Mongoose)
       const candidateId =
-        (q.id && String(q.id)) ||
-        (q._id && q._id.toString());
+        (q.id && String(q.id)) || (q._id && q._id.toString());
 
       if (candidateId && candidateId === questionId) {
         // Devolvemos un objeto plano con el nivel
@@ -384,4 +480,37 @@ function findQuestionInAssignment(assignment, questionId) {
   return null;
 }
 
+export async function getReminderCandidates(req, res, next) {
+  try {
+    const now = new Date();
+    const inTwoDays = new Date(
+      now.getTime() + 2 * 24 * 60 * 60 * 1000
+    );
 
+    const assignments = await Assignment.find({
+      dueDate: { $ne: null, $lte: inTwoDays }, // con fecha y próxima
+      'submission.at': { $exists: false } // sin entrega todavía
+    })
+      .populate('student', 'nombre email')
+      .populate('reading', 'titulo descripcion');
+
+    const items = assignments.map((a) => ({
+      id: a._id.toString(),
+      student: {
+        id: a.student._id.toString(),
+        nombre: a.student.nombre,
+        email: a.student.email
+      },
+      reading: {
+        id: a.reading._id.toString(),
+        titulo: a.reading.titulo,
+        descripcion: a.reading.descripcion
+      },
+      dueDate: a.dueDate
+    }));
+
+    return res.json({ ok: true, assignments: items });
+  } catch (e) {
+    next(e);
+  }
+}
