@@ -184,8 +184,52 @@ async function callGeminiForQuestions({ text, title, config }) {
   const prompt = `
 Eres un tutor experto en comprensión lectora, pensamiento crítico y argumentación en español.
 
-Genera preguntas de comprensión en tres niveles: literal, inferencial y crítico.
-Responde SOLO con un JSON con esta estructura:
+Vas a recibir el texto de una lectura y debes generar preguntas en tres niveles:
+1) Literal
+2) Inferencial
+3) Crítico
+
+ANTES de formular las preguntas, realiza internamente un ANÁLISIS de:
+- posibles SESGOS del autor (cognitivos, ideológicos, de selección de datos, etc.);
+- posibles FALACIAS argumentativas (ad hominem, falsa causa, generalización apresurada, apelación a la emoción, etc.).
+Ese análisis es interno: NO lo devuelvas como texto separado, pero utilízalo especialmente para diseñar las preguntas de nivel crítico.
+
+REQUERIMIENTOS POR NIVEL:
+
+- Nivel LITERAL:
+  * Preguntas basadas en información explícita del texto.
+  * El estudiante debe poder responder localizando datos directos.
+  * No pidas opiniones, solo verificación de hechos, personajes, datos, definiciones, etc.
+
+- Nivel INFERENCIAL:
+  * Preguntas que exijan deducir o interpretar ideas que no están dichas de forma literal.
+  * Relacionar partes del texto, leer entre líneas, identificar supuestos no declarados.
+  * Puedes incluir alguna pregunta que invite a inferir qué tipo de supuestos o perspectiva tiene el autor, sin afirmar nada como verdad absoluta.
+
+- Nivel CRÍTICO:
+  * Preguntas que inviten a valorar, argumentar, cuestionar y opinar de forma fundamentada sobre el texto.
+  * Considerar coherencia, intenciones del autor, impacto social, calidad de las fuentes y generalizaciones.
+  * DA ESPECIAL ÉNFASIS A ESTE NIVEL: más preguntas críticas que en los otros niveles.
+
+  Dentro del nivel CRÍTICO:
+  * Al menos LA MITAD de las preguntas deben centrarse en SESGOS y FALACIAS, por ejemplo:
+    - identificar un posible sesgo en cómo se presenta la información;
+    - revisar si alguna conclusión se basa en una generalización apresurada;
+    - detectar si se apela solo a la emoción sin sustento;
+    - ver si se ataca a la persona y no al argumento (ad hominem), etc.
+  * Si el texto parece equilibrado y no encuentras sesgos evidentes, formula preguntas que ayuden a comprobar si podrían existir sesgos ocultos (qué datos faltan, qué voces no se escuchan, qué supuestos se dan por hechos).
+
+CANTIDAD MÁXIMA DE PREGUNTAS:
+- Literal: hasta ${config.literal}
+- Inferencial: hasta ${config.inferential}
+- Crítico: hasta ${config.critical}
+
+RESPUESTAS ESPERADAS:
+- En "expectedAnswer", resume de forma breve una respuesta correcta o razonable.
+- En las preguntas críticas sobre sesgos/falacias, nombra el tipo de sesgo o falacia cuando sea posible y explica brevemente por qué.
+
+FORMATO DE RESPUESTA (MUY IMPORTANTE):
+Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructura:
 
 {
   "literal": [
@@ -199,13 +243,11 @@ Responde SOLO con un JSON con esta estructura:
   ]
 }
 
-Máximos:
-- Literal: ${config.literal}
-- Inferencial: ${config.inferential}
-- Crítico: ${config.critical}
+NO añadas comentarios fuera del JSON.
 
-TÍTULO: "${safeTitle}"
-TEXTO:
+TÍTULO DE LA LECTURA: "${safeTitle}"
+
+TEXTO DE LA LECTURA (puede estar recortado):
 """${trimmedText}"""
 `;
 
@@ -218,7 +260,8 @@ TEXTO:
     ],
   });
 
-  const responseText = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const responseText =
+    result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
   if (!responseText) {
     throw new Error("Respuesta vacía desde Gemini.");
@@ -237,6 +280,7 @@ TEXTO:
 
   return parseGeminiResponseToQuestions({ json: parsed, config });
 }
+
 
 /**
  * Llama a Gemini para evaluar una respuesta de estudiante.
